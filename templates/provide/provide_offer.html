@@ -170,17 +170,19 @@
         document.addEventListener('DOMContentLoaded', () => {
             const urlParams = new URLSearchParams(window.location.search);
             const incidentId = urlParams.get('incident_id');
-
+    
             if (incidentId) {
-                const apiUrl = `http://127.0.0.1:8001/incident-json/${incidentId}/`;
-
+                // Use the URL passed from Django settings
+                const baseUrl = "{{ CYBER_OPERATIONS_INCIDENTS_URL }}";
+                const apiUrl = `${baseUrl}/incident-json/${incidentId}/`;
+    
                 fetch(apiUrl)
                     .then(response => response.json())
                     .then(data => {
                         if (data.status === 'success') {
                             const incident = data.data.incident || {};
                             const metadata = data.data.metadata || {};
-
+    
                             document.getElementById('offer_title').value = metadata.offer_title || '';
                             document.getElementById('offer_description').value = metadata.offer_description || '';
                             document.getElementById('keywords').value = metadata.keywords || '';
@@ -194,5 +196,6 @@
             }
         });
     </script>
+    
 </body>
 </html>

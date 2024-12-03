@@ -3,6 +3,7 @@ from django.shortcuts import render, redirect
 from .forms import UploadMetadataForm
 from .connector import runner
 from django.contrib import messages
+from django.conf import settings
 
 def provide_offer(request):
     fixed_policy_rule = (
@@ -42,7 +43,7 @@ def provide_offer(request):
     if incident_id:
         try:
             # Endpoint for fetching incident and metadata data
-            incident_url = f"http://127.0.0.1:8001/incident-json/{incident_id}/"
+            incident_url = f"{settings.CYBER_OPERATIONS_INCIDENTS_URL}/incident-json/{incident_id}/"
 
             # Fetch Incident and Metadata Data
             response = requests.get(incident_url)
@@ -127,4 +128,5 @@ def provide_offer(request):
         'form': form,
         'fixed_policy_rule': fixed_policy_rule,
         'incident_id': incident_id,
+        'CYBER_OPERATIONS_INCIDENTS_URL': settings.CYBER_OPERATIONS_INCIDENTS_URL,
     })
