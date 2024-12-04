@@ -2,7 +2,7 @@ from django.http import JsonResponse
 import requests
 from datetime import datetime, timezone
 import urllib.parse
-django.conf import settings 
+from django.conf import settings 
 
 
 connector_url = settings.CONNECTOR_URL
@@ -102,7 +102,7 @@ def add_resource_to_catalog(created_catalog_id, created_resource_url):
     return make_request(url, headers=headers, body=data)
 
 def add_representation_to_resource(created_resource_id, created_representation_url):
-    url = f"{settings.CONNECTOR_URL.rstrip('/')}/api/offers/{created_resource_id}/representations'
+    url = f"{settings.CONNECTOR_URL.rstrip('/')}/api/offers/{created_resource_id}/representations"
     headers = {
         'Content-Type': 'application/json',
         'Authorization': 'Basic YWRtaW46cGFzc3dvcmQ='
@@ -150,7 +150,7 @@ def create_rule(metadata):
     return  make_request(url, headers=headers, body=data)
 
 def add_rule_to_contract(created_contract_id, created_rule_url):
-    url = f"{settings.CONNECTOR_URL.rstrip('/')}/api/contracts/{created_contract_id}/rules'
+    url = f"{settings.CONNECTOR_URL.rstrip('/')}/api/contracts/{created_contract_id}/rules"
     headers = {
         'Content-Type': 'application/json',
         'Authorization': 'Basic YWRtaW46cGFzc3dvcmQ='
@@ -162,7 +162,7 @@ def add_rule_to_contract(created_contract_id, created_rule_url):
     return  make_request(url, headers=headers, body=data)
 
 def add_contract_to_resource(created_resource_id, created_contract_url):
-    url = f"{settings.CONNECTOR_URL.rstrip('/')}/api/offers/{created_resource_id}/contracts'
+    url = f"{settings.CONNECTOR_URL.rstrip('/')}/api/offers/{created_resource_id}/contracts"
     headers = {
         'Content-Type': 'application/json',
         'Authorization': 'Basic YWRtaW46cGFzc3dvcmQ='
@@ -193,7 +193,7 @@ def create_artifact(metadata):
     return  make_request(url, headers=headers, body=data)
 
 def add_artifact_to_representation(created_representation_id, created_artifact_url):
-    url = f"{settings.CONNECTOR_URL.rstrip('/')}/api/representations/{created_representation_id}/artifacts'
+    url = f"{settings.CONNECTOR_URL.rstrip('/')}/api/representations/{created_representation_id}/artifacts"
     headers = {
         'Content-Type': 'application/json',
         'Authorization': 'Basic YWRtaW46cGFzc3dvcmQ='

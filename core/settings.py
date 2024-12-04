@@ -101,5 +101,5 @@ CORS_ALLOWED_ORIGIN_REGEXES = [
 # Custom settings
 CYBER_OPERATIONS_INCIDENTS_URL = os.getenv('CYBER_OPERATIONS_INCIDENTS_URL','')
 
-CONNECTOR_URL = config('CONNECTOR_URL', default='https://ds2provider.collab-cloud.eu:8081')
+CONNECTOR_URL = os.getenv('CONNECTOR_URL', default='https://ds2provider.collab-cloud.eu:8081')
 
