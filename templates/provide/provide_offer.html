@@ -116,7 +116,7 @@
 
                     <h4>Offer</h4>
                     <div class="form-group">
-                        <label for="offer_title" class="form-label">Title</label>
+                        <label for="offer_title" class="form-label">Title </label>
                         <input type="text" id="offer_title" name="offer_title" class="form-control" required>
                     </div>
                     <div class="form-group">
@@ -173,9 +173,9 @@
     
             if (incidentId) {
                 // Use the URL passed from Django settings
-                const baseUrl = "{{ CYBER_OPERATIONS_INCIDENTS_URL|escapejs }}";
-                const apiUrl = `${baseUrl}/incident-json/${incidentId}/`;
-                //const apiUrl = `http://alpha1.collab-cloud.eu/incident/incident-json/${incidentId}/`;
+                const baseUrl = "{{ CYBER_OPERATIONS_INCIDENTS_URL }}";
+                //const apiUrl = `${baseUrl}/incident-json/${incidentId}/`;
+                const apiUrl = `http://alpha1.collab-cloud.eu/incident/incident-json/${incidentId}/`;
                 fetch(apiUrl)
                     .then(response => response.json())
                     .then(data => {

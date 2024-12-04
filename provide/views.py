@@ -128,5 +128,5 @@ def provide_offer(request):
         'form': form,
         'fixed_policy_rule': fixed_policy_rule,
         'incident_id': incident_id,
-        'CYBER_OPERATIONS_INCIDENTS_URL': settings.CYBER_OPERATIONS_INCIDENTS_URL,
+        'incidents_url': settings.CYBER_OPERATIONS_INCIDENTS_URL.rstrip('/'),
     })

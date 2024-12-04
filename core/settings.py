@@ -1,4 +1,5 @@
 import os
+from decouple import config, Csv
 from pathlib import Path
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
@@ -6,12 +7,12 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 
 # Quick-start development settings - unsuitable for production
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = os.getenv('DJANGO_SECRET_KEY', 'django-insecure-default-key')
+SECRET_KEY = config('DJANGO_SECRET_KEY', 'django-insecure-default-key')
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = os.getenv('DJANGO_DEBUG', 'True') == 'True'
+DEBUG = config('DEBUG', default=True, cast=bool)
 
-ALLOWED_HOSTS = os.getenv('DJANGO_ALLOWED_HOSTS', '*').split(',')
+ALLOWED_HOSTS = config('ALLOWED_HOSTS', default='', cast=Csv())
 
 # Application definition
 INSTALLED_APPS = [
@@ -92,14 +93,14 @@ STATIC_URL = 'static/'
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 # CORS settings
-CORS_ALLOW_ALL_ORIGINS = os.getenv('DJANGO_CORS_ALLOWED_ORIGINS', '*') == '*'
-CORS_ALLOWED_ORIGIN_REGEXES = [
-    r"^http://127\.0\.0\.1:\d+$",  # Allow localhost on any port
-    r"^http://localhost:\d+$",     # Allow 127.0.0.1 on any port
-]
+CORS_ALLOW_ALL_ORIGINS = config('DJANGO_CORS_ALLOWED_ORIGINS', default='*') == '*'
+
+CORS_ALLOWED_ORIGIN_REGEXES = config('DJANGO_CORS_ALLOWED_ORIGIN_REGEXES', 
+                                    default=r"^http://127\.0\.0\.1:\d+$,^http://localhost:\d+$", 
+                                    cast=Csv())
 
 # Custom settings
-CYBER_OPERATIONS_INCIDENTS_URL = os.getenv('CYBER_OPERATIONS_INCIDENTS_URL','')
+CYBER_OPERATIONS_INCIDENTS_URL = config('CYBER_OPERATIONS_INCIDENTS_URL','')
 
-CONNECTOR_URL = os.getenv('CONNECTOR_URL', default='https://ds2provider.collab-cloud.eu:8081')
+CONNECTOR_URL = config('CONNECTOR_URL', '')
 
