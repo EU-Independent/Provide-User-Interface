@@ -2,6 +2,9 @@ name: Deploy to Server
 
 on:
   workflow_dispatch:
+  repository_dispatch:
+    types: 
+      - deploy-trigger # Match the event_type from the previous workflow
 
 jobs:
   deploy:
