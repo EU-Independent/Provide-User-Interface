@@ -42,9 +42,10 @@ def provide_offer(request):
     # Fetch Incident and Metadata Data from a single endpoint
     if incident_id:
         try:
+            print("Trying to get incident data")
             # Endpoint for fetching incident and metadata data
             incident_url = f"{settings.CYBER_OPERATIONS_INCIDENTS_URL}/incident-json/{incident_id}/"
-
+            print("URL: ", f"{settings.CYBER_OPERATIONS_INCIDENTS_URL}/incident-json/{incident_id}/")
             # Fetch Incident and Metadata Data
             response = requests.get(incident_url)
             response.raise_for_status()
