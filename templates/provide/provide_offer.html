@@ -173,9 +173,9 @@
     
             if (incidentId) {
                 // Use the URL passed from Django settings
-                const baseUrl = "{{ CYBER_OPERATIONS_INCIDENTS_URL }}";
-                //const apiUrl = `${baseUrl}/incident-json/${incidentId}/`;
-                const apiUrl = `http://alpha1.collab-cloud.eu/incident/incident-json/${incidentId}/`;
+                const baseUrl = "{{ CYBER_OPERATIONS_INCIDENTS_URL|escapejs }}";
+                const apiUrl = `${baseUrl}/incident-json/${incidentId}/`;
+                //const apiUrl = `http://alpha1.collab-cloud.eu/incident/incident-json/${incidentId}/`;
                 fetch(apiUrl)
                     .then(response => response.json())
                     .then(data => {

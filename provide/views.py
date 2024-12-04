@@ -43,7 +43,7 @@ def provide_offer(request):
     if incident_id:
         try:
             # Endpoint for fetching incident and metadata data
-            incident_url = f"http://alpha1.collab-cloud.eu/incident/incident-json/{incident_id}/"
+            incident_url = f"{settings.CYBER_OPERATIONS_INCIDENTS_URL.rstrip('/')}/incident-json/{incident_id}/"
 
             # Fetch Incident and Metadata Data
             response = requests.get(incident_url)
