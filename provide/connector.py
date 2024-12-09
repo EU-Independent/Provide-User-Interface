@@ -2,6 +2,11 @@ from django.http import JsonResponse
 import requests
 from datetime import datetime, timezone
 import urllib.parse
+from django.conf import settings 
+
+
+connector_url = settings.CONNECTOR_URL
+
 
 def convert_date_format(date_str: str) -> str:
     date_object = datetime.strptime(date_str, "%Y-%m-%dT%H:%M")
@@ -30,7 +35,7 @@ def make_request(url, headers=None, body=None):
         }
 
 def create_catalog(metadata):
-    url = 'https://ds2provider.collab-cloud.eu:8081/api/catalogs'
+    url = settings.CONNECTOR_URL.rstrip('/') + '/api/catalogs'
     headers = {
         'Content-Type': 'application/json',
         'Authorization': 'Basic YWRtaW46cGFzc3dvcmQ='
@@ -45,7 +50,7 @@ def create_catalog(metadata):
     return make_request(url, headers=headers, body=data)
 
 def create_representation(metadata):
-    url = 'https://ds2provider.collab-cloud.eu:8081/api/representations'
+    url = settings.CONNECTOR_URL.rstrip('/') + '/api/representations'
     headers = {
         'Content-Type': 'application/json',
         'Authorization': 'Basic YWRtaW46cGFzc3dvcmQ='
@@ -64,7 +69,7 @@ def create_representation(metadata):
 
 
 def create_offer(metadata):
-    url = 'https://ds2provider.collab-cloud.eu:8081/api/offers'
+    url = settings.CONNECTOR_URL.rstrip('/') + '/api/offers'
     headers = {
         'Content-Type': 'application/json',
         'Authorization': 'Basic YWRtaW46cGFzc3dvcmQ='
@@ -85,29 +90,30 @@ def create_offer(metadata):
 
 
 def add_resource_to_catalog(created_catalog_id, created_resource_url):
-    url = f'https://ds2provider.collab-cloud.eu:8081/api/catalogs/{created_catalog_id}/offers'
+    url = f"{settings.CONNECTOR_URL.rstrip('/')}/api/catalogs/{created_catalog_id}/offers"
+
     headers = {
         'Content-Type': 'application/json',
         'Authorization': 'Basic YWRtaW46cGFzc3dvcmQ='
     }
     data = [
-        f"https://ds2provider.collab-cloud.eu:8081/api/offers/{created_resource_url}"
+        f"{settings.CONNECTOR_URL.rstrip('/')}/api/offers/{created_resource_url}"
     ]
     return make_request(url, headers=headers, body=data)
 
 def add_representation_to_resource(created_resource_id, created_representation_url):
-    url = f'https://ds2provider.collab-cloud.eu:8081/api/offers/{created_resource_id}/representations'
+    url = f"{settings.CONNECTOR_URL.rstrip('/')}/api/offers/{created_resource_id}/representations"
     headers = {
         'Content-Type': 'application/json',
         'Authorization': 'Basic YWRtaW46cGFzc3dvcmQ='
     }
     data = [
-        f"https://ds2provider.collab-cloud.eu:8081/api/representations/{created_representation_url}"
+        f"{settings.CONNECTOR_URL.rstrip('/')}/api/representations/{created_representation_url}"
     ]
     return  make_request(url, headers=headers, body=data)
 
 def create_contract(metadata):
-    url = 'https://ds2provider.collab-cloud.eu:8081/api/contracts'
+    url = settings.CONNECTOR_URL.rstrip('/') + '/api/contracts'
     headers = {
         'Content-Type': 'application/json',
         'Authorization': 'Basic YWRtaW46cGFzc3dvcmQ='
@@ -126,7 +132,7 @@ def create_contract(metadata):
     return  make_request(url, headers=headers, body=data)
 
 def create_rule(metadata):
-    url = 'https://ds2provider.collab-cloud.eu:8081/api/rules'
+    url = settings.CONNECTOR_URL.rstrip('/') + '/api/rules'
     headers = {
         'Content-Type': 'application/json',
         'Authorization': 'Basic YWRtaW46cGFzc3dvcmQ='
@@ -144,30 +150,30 @@ def create_rule(metadata):
     return  make_request(url, headers=headers, body=data)
 
 def add_rule_to_contract(created_contract_id, created_rule_url):
-    url = f'https://ds2provider.collab-cloud.eu:8081/api/contracts/{created_contract_id}/rules'
+    url = f"{settings.CONNECTOR_URL.rstrip('/')}/api/contracts/{created_contract_id}/rules"
     headers = {
         'Content-Type': 'application/json',
         'Authorization': 'Basic YWRtaW46cGFzc3dvcmQ='
     }
     data = [
-        f"https://ds2provider.collab-cloud.eu:8081/api/rules/{created_rule_url}"
+        f"{settings.CONNECTOR_URL.rstrip('/')}/api/rules/{created_rule_url}"
     ]
 
     return  make_request(url, headers=headers, body=data)
 
 def add_contract_to_resource(created_resource_id, created_contract_url):
-    url = f'https://ds2provider.collab-cloud.eu:8081/api/offers/{created_resource_id}/contracts'
+    url = f"{settings.CONNECTOR_URL.rstrip('/')}/api/offers/{created_resource_id}/contracts"
     headers = {
         'Content-Type': 'application/json',
         'Authorization': 'Basic YWRtaW46cGFzc3dvcmQ='
     }
     data = [
-        f"https://ds2provider.collab-cloud.eu:8081/api/contracts/{created_contract_url}"
+        f"{settings.CONNECTOR_URL.rstrip('/')}/api/contracts/{created_contract_url}"
     ]
     return  make_request(url, headers=headers, body=data)
 
 def create_artifact(metadata):
-    url = 'https://ds2provider.collab-cloud.eu:8081/api/artifacts'
+    url = settings.CONNECTOR_URL.rstrip('/') + '/api/artifacts'
     headers = {
         'Content-Type': 'application/json',
         'Authorization': 'Basic YWRtaW46cGFzc3dvcmQ='
@@ -187,13 +193,13 @@ def create_artifact(metadata):
     return  make_request(url, headers=headers, body=data)
 
 def add_artifact_to_representation(created_representation_id, created_artifact_url):
-    url = f'https://ds2provider.collab-cloud.eu:8081/api/representations/{created_representation_id}/artifacts'
+    url = f"{settings.CONNECTOR_URL.rstrip('/')}/api/representations/{created_representation_id}/artifacts"
     headers = {
         'Content-Type': 'application/json',
         'Authorization': 'Basic YWRtaW46cGFzc3dvcmQ='
     }
     data = [
-        f"https://ds2provider.collab-cloud.eu:8081/api/artifacts/{created_artifact_url}"
+        f"{settings.CONNECTOR_URL.rstrip('/')}/api/artifacts/{created_artifact_url}"
     ]
     return  make_request(url, headers=headers, body=data)
 
