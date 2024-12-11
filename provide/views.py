@@ -46,7 +46,7 @@ def provide_offer(request):
             incident_url = f"{settings.CYBER_OPERATIONS_INCIDENTS_URL.rstrip('/')}/incident-json/{incident_id}/"
 
             # Fetch Incident and Metadata Data
-            response = requests.get(incident_url)
+            response = requests.get(incident_url,  verify=settings.ENFORCE_CONNECTOR_SSL)
             response.raise_for_status()
             data = response.json().get('data', {})
 
