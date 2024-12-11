@@ -16,7 +16,7 @@ def convert_date_format(date_str: str) -> str:
 
 def make_request(url, headers=None, body=None):
     try:
-        response = requests.post(url, headers=headers, json=body)
+        response = requests.post(url, headers=headers, json=body, verify=settings.ENFORCE_CONNECTOR_SSL)
         response_json = response.json()
         if response.status_code in [200, 201]:
             return {
