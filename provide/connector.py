@@ -8,9 +8,22 @@ from django.conf import settings
 connector_url = settings.CONNECTOR_URL
 
 
-def convert_date_format(date_str: str) -> str:
-    date_object = datetime.strptime(date_str, "%Y-%m-%dT%H:%M")
+def convert_date_format(date_str):
+
+    if isinstance(date_str, datetime):
+        date_object = date_str
+    else:
+        try:
+            
+            date_object = datetime.strptime(date_str, "%Y-%m-%dT%H:%M")
+        except ValueError as e:
+            
+            print(f"Error: Invalid date format - {e}")
+            raise ValueError("Invalid date format")
+    
+    
     date_object = date_object.replace(tzinfo=timezone.utc)
+    
     formatted_date_str = date_object.strftime("%Y-%m-%dT%H:%M:%S.%f")[:-3] + "+0000"
     return formatted_date_str
 
