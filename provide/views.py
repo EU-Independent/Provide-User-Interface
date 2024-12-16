@@ -67,6 +67,8 @@ def provide_offer(request):
         'accessUrl': incident_data.get('accessUrl', ''),
     }
 
+    print("Initial Data Now: ", incident_url)
+    
     if request.method == 'POST':
         form = UploadMetadataForm(request.POST)
         if form.is_valid():
