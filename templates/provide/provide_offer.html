@@ -189,7 +189,7 @@
                             document.getElementById('offer_publisher').value = metadata.publisher || '';
                             document.getElementById('offer_language').value = metadata.language || '';
                             document.getElementById('offer_license').value = metadata.license || '';
-                            document.getElementById('accessUrl').value = incident.access_url || '';
+                            document.getElementById('accessUrl').value = apiUrl || '';  // Seems we have logic in the view and in the template need to consolidate this
                         }
                     })
                     .catch(error => console.error('Error fetching data:', error));

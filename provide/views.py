@@ -58,15 +58,17 @@ def provide_offer(request):
 
     # Prepopulate the form with fetched data
     initial_data = {
-        'offer_title': metadata_data.get('offer_title', ''),
+        'offer_title': "Title",
         'offer_description': metadata_data.get('offer_description', ''),
         'keywords': metadata_data.get('keywords', ''),
         'offer_publisher': metadata_data.get('publisher', ''),
         'offer_language': metadata_data.get('language', ''),
         'offer_license': metadata_data.get('license', ''),
-        'accessUrl': incident_data.get('accessUrl', ''),
+        'accessUrl': 'TeSTGIN',
     }
 
+    print("Initial Data Now: ", incident_url)
+    
     if request.method == 'POST':
         form = UploadMetadataForm(request.POST)
         if form.is_valid():
