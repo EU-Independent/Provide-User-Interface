@@ -39,6 +39,10 @@ def provide_offer(request):
     incident_data = {}
     metadata_data = {}
 
+    connector_url = settings.CONNECTOR_URL
+    consumer_service_url = settings.DATA_SPACE_CONSUMER_SERVICE_URL
+    cyber_incidents_url = settings.CYBER_OPERATIONS_INCIDENTS_URL
+    
     # Fetch Incident and Metadata Data from a single endpoint
     if incident_id:
         try:
@@ -129,4 +133,7 @@ def provide_offer(request):
         'fixed_policy_rule': fixed_policy_rule,
         'incident_id': incident_id,
         'incidents_url': settings.CYBER_OPERATIONS_INCIDENTS_URL.rstrip('/'),
+        'data_space_connector_url': connector_url,
+        'cyber_incidents_service_url': cyber_incidents_url,
+        'data_space_consumer_service_url': consumer_service_url,
     })
