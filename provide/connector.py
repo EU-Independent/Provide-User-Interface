@@ -91,13 +91,17 @@ def create_offer(metadata):
     description = metadata.get("description")
     keywords = metadata.get("keywords")
     keywords_list = keywords.split(',')
-
+    license = metadata.get("license")
+    
+    print("license create_offer", license)
+    
     paymentMethod = metadata.get("paymentMethod")
     data = {
         "title": title,
         "description": description,
         "keywords": keywords_list,
-        "paymentMethod": paymentMethod  # TODO: paymentMethod 'free' or 'undefined'
+        "paymentMethod": paymentMethod,  # TODO: paymentMethod 'free' or 'undefined'
+        "license": license
     }
     return make_request(url, headers=headers, body=data)
 
