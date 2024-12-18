@@ -1,0 +1,97 @@
+[
+    {
+        "name": "CC0 1.0 Universal (Public Domain Dedication)",
+        "access_url": "https://creativecommons.org/publicdomain/zero/1.0/",
+        "raw_text_url": "https://creativecommons.org/publicdomain/zero/1.0/legalcode.txt"
+    },
+    {
+        "name": "CC BY 4.0 (Attribution 4.0 International)",
+        "access_url": "https://creativecommons.org/licenses/by/4.0/",
+        "raw_text_url": "https://creativecommons.org/licenses/by/4.0/legalcode.txt"
+    },
+    {
+        "name": "CC BY-SA 4.0 (Attribution-ShareAlike 4.0 International)",
+        "access_url": "https://creativecommons.org/licenses/by-sa/4.0/",
+        "raw_text_url": "https://creativecommons.org/licenses/by-sa/4.0/legalcode.txt"
+    },
+    {
+        "name": "CC BY-NC 4.0 (Attribution-NonCommercial 4.0 International)",
+        "access_url": "https://creativecommons.org/licenses/by-nc/4.0/",
+        "raw_text_url": "https://creativecommons.org/licenses/by-nc/4.0/legalcode.txt"
+    },
+    {
+        "name": "CC BY-NC-SA 4.0 (Attribution-NonCommercial-ShareAlike 4.0 International)",
+        "access_url": "https://creativecommons.org/licenses/by-nc-sa/4.0/",
+        "raw_text_url": "https://creativecommons.org/licenses/by-nc-sa/4.0/legalcode.txt"
+    },
+    {
+        "name": "CC BY-ND 4.0 (Attribution-NoDerivatives 4.0 International)",
+        "access_url": "https://creativecommons.org/licenses/by-nd/4.0/",
+        "raw_text_url": "https://creativecommons.org/licenses/by-nd/4.0/legalcode.txt"
+    },
+    {
+        "name": "CC BY-NC-ND 4.0 (Attribution-NonCommercial-NoDerivatives 4.0 International)",
+        "access_url": "https://creativecommons.org/licenses/by-nc-nd/4.0/",
+        "raw_text_url": "https://creativecommons.org/licenses/by-nc-nd/4.0/legalcode.txt"
+    },
+    {
+        "name": "ODC Public Domain Dedication and License (PDDL)",
+        "access_url": "https://opendatacommons.org/licenses/pddl/1-0/",
+        "raw_text_url": "https://opendatacommons.org/licenses/pddl/1-0/legalcode.txt"
+    },
+    {
+        "name": "ODC Attribution License (ODC-By)",
+        "access_url": "https://opendatacommons.org/licenses/by/1-0/",
+        "raw_text_url": "https://opendatacommons.org/licenses/by/1-0/legalcode.txt"
+    },
+    {
+        "name": "ODC Open Database License (ODbL)",
+        "access_url": "https://opendatacommons.org/licenses/odbl/1-0/",
+        "raw_text_url": "https://opendatacommons.org/licenses/odbl/1-0/legalcode.txt"
+    },
+    {
+        "name": "GNU General Public License (GPL) v3.0",
+        "access_url": "https://www.gnu.org/licenses/gpl-3.0.en.html",
+        "raw_text_url": "https://www.gnu.org/licenses/gpl-3.0.txt"
+    },
+    {
+        "name": "GNU Lesser General Public License (LGPL) v3.0",
+        "access_url": "https://www.gnu.org/licenses/lgpl-3.0.en.html",
+        "raw_text_url": "https://www.gnu.org/licenses/lgpl-3.0.txt"
+    },
+    {
+        "name": "MIT License",
+        "access_url": "https://opensource.org/licenses/MIT",
+        "raw_text_url": "https://opensource.org/licenses/MIT.txt"
+    },
+    {
+        "name": "Apache License 2.0",
+        "access_url": "https://www.apache.org/licenses/LICENSE-2.0",
+        "raw_text_url": "https://www.apache.org/licenses/LICENSE-2.0.txt"
+    },
+    {
+        "name": "BSD 3-Clause License",
+        "access_url": "https://opensource.org/licenses/BSD-3-Clause",
+        "raw_text_url": "https://opensource.org/licenses/BSD-3-Clause.txt"
+    },
+    {
+        "name": "BSD 2-Clause License",
+        "access_url": "https://opensource.org/licenses/BSD-2-Clause",
+        "raw_text_url": "https://opensource.org/licenses/BSD-2-Clause.txt"
+    },
+    {
+        "name": "Eclipse Public License (EPL) v2.0",
+        "access_url": "https://www.eclipse.org/legal/epl-2.0/",
+        "raw_text_url": "https://www.eclipse.org/legal/epl-2.0/epl-2.0.txt"
+    },
+    {
+        "name": "W3C Open Digital Rights Language (ODRL)",
+        "access_url": "https://www.w3.org/TR/odrl/",
+        "raw_text_url": null
+    },
+    {
+        "name": "European Union Public License (EUPL) v1.2",
+        "access_url": "https://joinup.ec.europa.eu/collection/eupl/eupl-text-eupl-12",
+        "raw_text_url": null
+    }
+]
