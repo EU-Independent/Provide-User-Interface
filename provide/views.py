@@ -1,9 +1,11 @@
-import requests
+from django import forms
 from django.shortcuts import render, redirect
-from .forms import UploadMetadataForm
-from .connector import runner
 from django.contrib import messages
 from django.conf import settings
+import requests
+from .forms import UploadMetadataForm
+from .connector import runner
+from .models import License
 
 def provide_offer(request):
     fixed_policy_rule = (
@@ -43,7 +45,7 @@ def provide_offer(request):
     consumer_service_url = settings.DATA_SPACE_CONSUMER_SERVICE_URL
     data_upload_service_url = settings.DATA_UPLOAD_SERVICE_URL
     access_policy_generator_url = settings.ACCESS_POLICY_GENERATOR_URL
-    
+
     # Fetch Incident and Metadata Data from a single endpoint
     if incident_id:
         try:
@@ -51,7 +53,7 @@ def provide_offer(request):
             incident_url = f"{settings.data_upload_service_url.rstrip('/')}/incident-json/{incident_id}/"
 
             # Fetch Incident and Metadata Data
-            response = requests.get(incident_url,  verify=settings.ENFORCE_CONNECTOR_SSL)
+            response = requests.get(incident_url, verify=settings.ENFORCE_CONNECTOR_SSL)
             response.raise_for_status()
             data = response.json().get('data', {})
 
@@ -71,11 +73,20 @@ def provide_offer(request):
         'offer_license': metadata_data.get('license', ''),
         'accessUrl': incident_data.get('accessUrl', ''),
     }
-        
+
+    licenses = License.objects.all()
+    license_choices = [(license.name, license.name) for license in licenses]
+    print("License Choices: ", license_choices)
+
     if request.method == 'POST':
-        form = UploadMetadataForm(request.POST)
+        form = UploadMetadataForm(request.POST, license_choices=license_choices)
         if form.is_valid():
             data = form.cleaned_data
+
+            # Fetch the selected license URL
+            selected_license_name = data.get('offer_license')
+            selected_license = License.objects.filter(name=selected_license_name).first()
+            license_url = selected_license.access_url if selected_license else ""
 
             user_metadata = {
                 'catalog': {
@@ -95,7 +106,7 @@ def provide_offer(request):
                     'paymentMethod': 'undefined',
                     'publisher': data.get('offer_publisher'),
                     'language': data.get('offer_language'),
-                    'license': data.get('offer_license'),
+                    'license': license_url,
                 },
                 'contract': {
                     'title': data.get('contract_title', 'Not set'),
@@ -115,7 +126,7 @@ def provide_offer(request):
                     'automatedDownload': data.get('automatedDownload', False),
                 }
             }
-
+            print("User Metadata: ", user_metadata)
             # Send user metadata to the runner
             result = runner(user_metadata)
             if result:
@@ -127,10 +138,11 @@ def provide_offer(request):
         else:
             messages.error(request, "Form is invalid. Please correct the errors and try again.")
     else:
-        form = UploadMetadataForm(initial=initial_data)  # Populate form with initial data
+        form = UploadMetadataForm(request.POST or None, license_choices=license_choices)
 
     return render(request, 'provide/provide_offer.html', {
         'form': form,
+        'licenses': licenses,
         'fixed_policy_rule': fixed_policy_rule,
         'incident_id': incident_id,
         'incidents_url': settings.DATA_UPLOAD_SERVICE_URL.rstrip('/'),

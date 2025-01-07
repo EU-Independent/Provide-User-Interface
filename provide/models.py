@@ -12,4 +12,9 @@ class UploadedFile(models.Model):
     def __str__(self):
         return f"{self.user.username} uploaded {self.uploaded_file} at {self.timestamp}"
 
- 
+class License(models.Model):
+    name = models.CharField(max_length=255, unique=True)
+    access_url = models.URLField()
+
+    def __str__(self):
+        return self.name

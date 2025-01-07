@@ -134,8 +134,13 @@
                     </div>
                     <div class="form-group">
                         <label for="offer_license" class="form-label">License</label>
-                        <input type="text" id="offer_license" name="offer_license" class="form-control" required>
-                    </div> 
+                        <select id="offer_license" name="offer_license" class="form-control" required>
+                            <option value="">Select a license</option>
+                            {% for license in licenses %}
+                            <option value="{{ license.name }}">{{ license.name }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
                     <div class="form-group">
                         <label for="accessUrl" class="form-label">Offer Access URL</label>
                         <input type="url" id="accessUrl" name="accessUrl" class="form-control" required>
@@ -180,34 +185,6 @@
             alert('URL copied to clipboard!');
         });
     </script>
-    
-    <!-- Fetch and populate form dynamically -->
-    <script>
-        document.addEventListener('DOMContentLoaded', () => {
-            const urlParams = new URLSearchParams(window.location.search);
-            const incidentId = urlParams.get('incident_id');
-    
-            if (incidentId) {
-                const apiUrl = `http://alpha1.collab-cloud.eu/incident/incident-json/${incidentId}/`;
-                fetch(apiUrl)
-                    .then(response => response.json())
-                    .then(data => {
-                        if (data.status === 'success') {
-                            const incident = data.data.incident || {};
-                            const metadata = data.data.metadata || {};
-    
-                            document.getElementById('offer_title').value = metadata.offer_title || '';
-                            document.getElementById('offer_description').value = metadata.offer_description || '';
-                            document.getElementById('keywords').value = metadata.keywords || '';
-                            document.getElementById('offer_publisher').value = metadata.publisher || '';
-                            document.getElementById('offer_language').value = metadata.language || '';
-                            document.getElementById('offer_license').value = metadata.license || '';
-                            document.getElementById('accessUrl').value = apiUrl || '';
-                        }
-                    })
-                    .catch(error => console.error('Error fetching data:', error));
-            }
-        });
-    </script>
+
 </body>
 </html>
