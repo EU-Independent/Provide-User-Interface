@@ -43,13 +43,14 @@ def provide_offer(request):
 
     connector_url = settings.CONNECTOR_URL
     consumer_service_url = settings.DATA_SPACE_CONSUMER_SERVICE_URL
-    cyber_incidents_url = settings.CYBER_OPERATIONS_INCIDENTS_URL
+    data_upload_service_url = settings.DATA_UPLOAD_SERVICE_URL
+    access_policy_generator_url = settings.ACCESS_POLICY_GENERATOR_URL
 
     # Fetch Incident and Metadata Data from a single endpoint
     if incident_id:
         try:
             # Endpoint for fetching incident and metadata data
-            incident_url = f"{settings.CYBER_OPERATIONS_INCIDENTS_URL.rstrip('/')}/incident-json/{incident_id}/"
+            incident_url = f"{settings.data_upload_service_url.rstrip('/')}/incident-json/{incident_id}/"
 
             # Fetch Incident and Metadata Data
             response = requests.get(incident_url, verify=settings.ENFORCE_CONNECTOR_SSL)
@@ -144,8 +145,9 @@ def provide_offer(request):
         'licenses': licenses,
         'fixed_policy_rule': fixed_policy_rule,
         'incident_id': incident_id,
-        'incidents_url': settings.CYBER_OPERATIONS_INCIDENTS_URL.rstrip('/'),
+        'incidents_url': settings.DATA_UPLOAD_SERVICE_URL.rstrip('/'),
         'data_space_connector_url': connector_url,
-        'cyber_incidents_service_url': cyber_incidents_url,
+        'data_upload_service_url': data_upload_service_url,
         'data_space_consumer_service_url': consumer_service_url,
+        'access_policy_generator_url': access_policy_generator_url
     })

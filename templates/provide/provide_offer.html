@@ -80,7 +80,7 @@
 
             <!-- Right: Buttons -->
             <div class="d-flex">
-                <a href="{{ cyber_incidents_service_url }}" class="btn btn-outline-success btn-sm me-2">Cyber Incidents</a>
+                <a href="{{ data_upload_service_url }}" class="btn btn-outline-success btn-sm me-2">Upload</a>
                 <a href="{{ data_space_consumer_service_url }}" class="btn btn-outline-primary btn-sm">Consume</a>
             </div>
         </div>
@@ -146,7 +146,7 @@
                         <input type="url" id="accessUrl" name="accessUrl" class="form-control" required>
                     </div>
                     <hr>
-                    <h4>Contract</h4>
+                    <h4>Data Access Rules</h4>
                     <div class="form-group">
                         <label for="start" class="form-label">Access Start Date</label>
                         <input type="datetime-local" id="start" name="start" class="form-control" required>
@@ -157,7 +157,8 @@
                     </div>
                     <div class="form-group">
                         <label for="value" class="form-label">Access Policy</label>
-                        <textarea id="value" name="value" class="form-control readonly-input" rows="10" required readonly>{{ fixed_policy_rule }}</textarea>
+                        <textarea id="value" name="value" class="form-control" rows="10" required>{{ fixed_policy_rule }}</textarea>
+                        <button type="button" class="btn btn-primary mt-3" onclick="openUrl()">Generate Custom Policy</button>
                     </div>
 
                     <hr>
@@ -166,6 +167,14 @@
             </div>
         </div>
     </div>
+
+
+    <script>
+        function openUrl() {
+            const url = "{{ access_policy_generator_url|escapejs }}"; // Pass URL from view
+            window.open(url, '_blank');
+        }
+    </script>
 
     <!-- Copy URL Script -->
     <script>
