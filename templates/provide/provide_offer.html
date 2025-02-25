@@ -77,14 +77,7 @@
                     <i class="fas fa-copy"></i>
                 </button>
             </div>
-
-            <!-- Right: Buttons 
-            <div class="d-flex">
-                <a href="{{ data_upload_service_url }}" class="btn btn-outline-success btn-sm me-2">Upload</a>
-                <a href="{{ data_space_consumer_service_url }}" class="btn btn-outline-primary btn-sm">Consume</a>
-            </div>
         </div>
-        -->
     </nav>
 
     <!-- Main Content -->
@@ -143,23 +136,19 @@
                         </select>
                     </div>
                     
-                    
-                    
-                                        <!-- Include a Drop Area for Drag-and-Drop -->
                     <div class="form-group">
                         <label for="accessUrl" class="form-label">Offer Access URL</label>
-                        <!-- Drag and Drop Area -->
-                        <div id="drop-area" class="border p-4 text-center" style="border-radius: 8px; cursor: pointer;">
-                            <p>Click to Select a File or Enter a File Url bellow</p>
+                        <div class="input-group">
+                            <div class="border p-3 w-100" style="border-radius: 8px; cursor: pointer; background-color: #f8f9fa; display: flex; align-items: center;">
+                                <input type="url" id="accessUrl" name="accessUrl" class="form-control" readonly placeholder="Enter the file URL manually, or click the button to upload a file" style="flex-grow: 1;">
+                                <button type="button" class="btn btn-outline-danger ms-2" id="removeFileBtn" style="display:none;">Remove</button>
+                                <input type="file" id="fileInput" name="file" style="display:none;">
+                                <button type="button" class="btn btn-outline-primary ms-2" id="fileUploadBtn">
+                                    <i class="fas fa-upload"></i> Upload File
+                                </button>
+                            </div>
                         </div>
-                        <!-- Hidden File Input (not shown but used to handle file uploads) -->
-                        <input type="file" id="fileInput" name="file" style="display:none;">
-                        <input type="url" id="accessUrl" name="accessUrl" class="form-control mt-2" readonly>
-                        <button type="button" id="removeFileBtn" class="btn btn-danger mt-2" style="display:none;">Remove File</button>
                     </div>
-                    
-                    
-                    
                     
                     <hr>
                     <h4>Data Access Rules</h4>
@@ -174,7 +163,6 @@
                     <div class="form-group">
                         <label for="value" class="form-label">Access Policy</label>
                         <textarea id="value" name="value" class="form-control" rows="10" required>{{ fixed_policy_rule }}</textarea>
-                        <!--<button type="button" class="btn btn-primary mt-3" onclick="openUrl()">Generate Custom Policy</button>-->
                     </div>
 
                     <hr>
@@ -183,14 +171,6 @@
             </div>
         </div>
     </div>
-
-
-    <script>
-        function openUrl() {
-            const url = "{{ access_policy_generator_url|escapejs }}"; // Pass URL from view
-            window.open(url, '_blank');
-        }
-    </script>
 
     <!-- Copy URL Script -->
     <script>
@@ -202,78 +182,61 @@
         });
     </script>
 
+    <!-- File upload and removal functionality -->
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            const accessUrlField = document.getElementById("accessUrl");
+            const fileInput = document.getElementById("fileInput");
+            const removeFileBtn = document.getElementById("removeFileBtn");
+            const fileUploadBtn = document.getElementById("fileUploadBtn");
 
-<script>
-    document.addEventListener("DOMContentLoaded", function () {
-    const dropArea = document.getElementById("drop-area");
-    const fileInput = document.getElementById("fileInput");
-    const accessUrlField = document.getElementById("accessUrl");
-    const removeFileBtn = document.getElementById("removeFileBtn");
+            // Handle file selection from input
+            fileInput.addEventListener("change", () => {
+                handleFileUpload(fileInput.files[0]);
+            });
 
-    // Trigger file input when drop area is clicked
-    dropArea.addEventListener("click", () => fileInput.click());
+            // Trigger file input when the upload button is clicked
+            fileUploadBtn.addEventListener("click", () => fileInput.click());
 
-    // Handle drag events
-    dropArea.addEventListener("dragover", (event) => {
-        event.preventDefault();
-        dropArea.style.backgroundColor = "#f1f1f1";
-    });
+            // Handle file upload logic
+            function handleFileUpload(file) {
+                if (!file) return;
 
-    dropArea.addEventListener("dragleave", () => {
-        dropArea.style.backgroundColor = "#ffffff";
-    });
+                const formData = new FormData();
+                formData.append("file", file);
 
-    dropArea.addEventListener("drop", (event) => {
-        event.preventDefault();
-        dropArea.style.backgroundColor = "#ffffff";
-        handleFileUpload(event.dataTransfer.files[0]);
-    });
-
-    // Handle file selection from input
-    fileInput.addEventListener("change", () => {
-        handleFileUpload(fileInput.files[0]);
-    });
-
-    // Handle file upload logic
-    function handleFileUpload(file) {
-        if (!file) return;
-
-        const formData = new FormData();
-        formData.append("file", file);
-
-        fetch("/upload/", {
-            method: "POST",
-            body: formData,
-            headers: { "X-CSRFToken": "{{ csrf_token }}" }
-        })
-        .then(response => response.json())
-        .then(data => {
-            if (data.file_url) {
-                // Populate the URL field with the uploaded file URL and make it non-editable
-                accessUrlField.value = data.file_url;
-                accessUrlField.readOnly = true;
-                removeFileBtn.style.display = "inline-block"; // Show the "Remove File" button
-            } else {
-                alert('Upload failed: ' + data.error);
+                fetch("/upload/", {
+                    method: "POST",
+                    body: formData,
+                    headers: { "X-CSRFToken": "{{ csrf_token }}" }
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.file_url) {
+                        // Populate the URL field with the uploaded file URL and make it non-editable
+                        accessUrlField.value = data.file_url;
+                        accessUrlField.readOnly = true;
+                        removeFileBtn.style.display = "inline-block"; // Show the "Remove File" button
+                        fileUploadBtn.style.display = "none"; // Hide the upload button after file upload
+                    } else {
+                        alert('Upload failed: ' + data.error);
+                    }
+                })
+                .catch(error => {
+                    alert('Error: ' + error.message);
+                });
             }
-        })
-        .catch(error => {
-            alert('Error: ' + error.message);
+
+            // Remove the uploaded file and reset the input for a new file upload
+            removeFileBtn.addEventListener("click", () => {
+                accessUrlField.value = ''; // Clear the URL field
+                accessUrlField.readOnly = false; // Make the field editable again
+                removeFileBtn.style.display = "none"; // Hide the "Remove File" button
+                fileUploadBtn.style.display = "inline-block"; // Show the upload button again
+                fileInput.value = ''; // Reset the file input to allow re-uploading
+            });
         });
-    }
-
-    // Remove the uploaded file and reset the input for a new file upload
-    removeFileBtn.addEventListener("click", () => {
-        accessUrlField.value = ''; // Clear the URL field
-        accessUrlField.readOnly = false; // Make the field editable again
-        removeFileBtn.style.display = "none"; // Hide the "Remove File" button
-        fileInput.value = ''; // Reset the file input to allow re-uploading
-    });
-});
-
-
     </script>
-    
 
 </body>
 </html>
