@@ -1,8 +1,11 @@
 from django.urls import path
-from .views import provide_offer, upload_view
+from . import views
 
 urlpatterns = [
-    path('', provide_offer, name='provide_offer'),
-    path("upload/", upload_view, name="upload"),  # Handles file uploads
+   
+    path('', views.provide_offer, name='provide_offer'),
 
+    path('upload/', views.upload_view, name='file_upload'),  
+
+    path('upload/<int:file_id>/', views.upload_view, name='file_download'),  
 ]
