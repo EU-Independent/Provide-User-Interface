@@ -88,7 +88,11 @@ USE_I18N = True
 USE_TZ = True
 
 # Static files
-STATIC_URL = 'static/'
+STATIC_URL = '/static/'
+STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
+
+MEDIA_URL = '/media/'
+MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
@@ -104,6 +108,7 @@ DATA_UPLOAD_SERVICE_URL = config('DATA_UPLOAD_SERVICE_URL','')
 DATA_SPACE_CONSUMER_SERVICE_URL = config('DATA_SPACE_CONSUMER_SERVICE_URL','')
 CONNECTOR_URL = config('CONNECTOR_URL', '')
 ACCESS_POLICY_GENERATOR_URL = config('ACCESS_POLICY_GENERATOR_URL', '')
+DOMAIN_URL = config('DOMAIN_URL', '')
 
 
 ENFORCE_CONNECTOR_SSL = config('REQUESTS_VERIFY_SSL', cast=bool)

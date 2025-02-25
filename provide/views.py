@@ -1,11 +1,15 @@
 from django import forms
-from django.shortcuts import render, redirect
+from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib import messages
 from django.conf import settings
+from django.http import JsonResponse, HttpResponse
+from django.views.decorators.csrf import csrf_exempt
 import requests
 from .forms import UploadMetadataForm
 from .connector import runner
-from .models import License
+from .models import License, UploadedFile
+import base64
+from django.shortcuts import render
 
 def provide_offer(request):
     fixed_policy_rule = (
@@ -36,7 +40,7 @@ def provide_offer(request):
         '}'
     )
 
-    incident_id = request.GET.get('incident_id')  # Get incident ID from query parameters
+    incident_id = request.GET.get('incident_id')
     print("Incident ID: ", incident_id)
     incident_data = {}
     metadata_data = {}
@@ -49,14 +53,10 @@ def provide_offer(request):
     # Fetch Incident and Metadata Data from a single endpoint
     if incident_id:
         try:
-            # Endpoint for fetching incident and metadata data
             incident_url = f"{settings.data_upload_service_url.rstrip('/')}/incident-json/{incident_id}/"
-
-            # Fetch Incident and Metadata Data
             response = requests.get(incident_url, verify=settings.ENFORCE_CONNECTOR_SSL)
             response.raise_for_status()
             data = response.json().get('data', {})
-
             incident_data = data.get('incident', {})
             metadata_data = data.get('metadata', {})
 
@@ -83,7 +83,6 @@ def provide_offer(request):
         if form.is_valid():
             data = form.cleaned_data
 
-            # Fetch the selected license URL
             selected_license_name = data.get('offer_license')
             selected_license = License.objects.filter(name=selected_license_name).first()
             license_url = selected_license.access_url if selected_license else ""
@@ -127,6 +126,7 @@ def provide_offer(request):
                 }
             }
             print("User Metadata: ", user_metadata)
+
             # Send user metadata to the runner
             result = runner(user_metadata)
             if result:
@@ -134,7 +134,8 @@ def provide_offer(request):
             else:
                 messages.error(request, "Something went wrong with providing the offer.")
 
-            return redirect('provide_offer')  # Redirect to clear the form and avoid resubmission
+            return redirect('provide_offer')
+
         else:
             messages.error(request, "Form is invalid. Please correct the errors and try again.")
     else:
@@ -151,3 +152,62 @@ def provide_offer(request):
         'data_space_consumer_service_url': consumer_service_url,
         'access_policy_generator_url': access_policy_generator_url
     })
+
+import os
+from django.conf import settings
+from django.http import JsonResponse, HttpResponse
+from django.shortcuts import get_object_or_404
+from django.views.decorators.csrf import csrf_exempt
+from .models import UploadedFile  
+
+@csrf_exempt
+def upload_view(request, file_id=None):
+    print("File upload request received.")
+    
+    if request.method == "POST":
+        if request.FILES.get("file"):
+            uploaded_file = request.FILES["file"]
+            print("--------------------")
+            print("uploaded_file", uploaded_file)
+            print("--------------------")
+            
+            
+            allowed_types = ["application/json"]
+            if uploaded_file.content_type not in allowed_types:
+                return JsonResponse({"error": "Invalid file type. Only JSON files are allowed."}, status=400)
+            
+            
+            upload_dir = 'uploads'
+            if not os.path.exists(upload_dir):
+                os.makedirs(upload_dir)  
+
+            
+            file_instance = UploadedFile.objects.create(
+                file=uploaded_file,  
+                file_name=uploaded_file.name  
+            )
+
+            # Generate a unique URL for the uploaded file
+            file_url = f"{settings.DOMAIN_URL}{settings.MEDIA_URL}{file_instance.file.name}"
+            
+
+            return JsonResponse({"message": "File uploaded successfully", "file_url": file_url})
+
+        return JsonResponse({"error": "No file provided"}, status=400)
+
+    elif request.method == "GET" and file_id:
+        # Retrieve the file from the database using the file ID
+        file_instance = get_object_or_404(UploadedFile, id=file_id)
+        
+        # Serve the file for download (using the stored file path)
+        with open(file_instance.file.path, 'rb') as f:  # Use file.path to get the local path
+            file_data = f.read()
+
+        response = HttpResponse(file_data, content_type="application/json")
+        response["Content-Disposition"] = f'attachment; filename="{file_instance.file_name}"'
+        return response
+
+    return JsonResponse({"error": "Invalid request"}, status=400)
+
+
+
