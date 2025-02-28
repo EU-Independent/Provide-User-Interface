@@ -140,7 +140,7 @@
                         <label for="accessUrl" class="form-label">Offer Access URL</label>
                         <div class="input-group">
                             <div class="border p-3 w-100" style="border-radius: 8px; cursor: pointer; background-color: #f8f9fa; display: flex; align-items: center;">
-                                <input type="url" id="accessUrl" name="accessUrl" class="form-control" readonly placeholder="Enter the file URL manually, or click the button to upload a file" style="flex-grow: 1;">
+                                <input type="url" id="accessUrl" name="accessUrl" class="form-control" placeholder="Enter the file URL manually, or click the button to upload a file">
                                 <button type="button" class="btn btn-outline-danger ms-2" id="removeFileBtn" style="display:none;">Remove</button>
                                 <input type="file" id="fileInput" name="file" style="display:none;">
                                 <button type="button" class="btn btn-outline-primary ms-2" id="fileUploadBtn">
@@ -189,6 +189,14 @@
             const fileInput = document.getElementById("fileInput");
             const removeFileBtn = document.getElementById("removeFileBtn");
             const fileUploadBtn = document.getElementById("fileUploadBtn");
+
+            // Handle manual URL input
+            accessUrlField.addEventListener("input", () => {
+                if (accessUrlField.value.trim() !== "") {
+                    removeFileBtn.style.display = "none"; // Hide remove button
+                    fileUploadBtn.style.display = "inline-block"; // Show upload button
+                }
+            });
 
             // Handle file selection from input
             fileInput.addEventListener("change", () => {
