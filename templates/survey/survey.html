@@ -37,6 +37,17 @@
 <body>
 
     <!-- Navigation Bar -->
+    <div class="container mt-4">
+        <!-- Display Success or Error Messages -->
+        {% if messages %}
+            <div class="mb-4">
+                {% for message in messages %}
+                    <div class="alert alert-{{ message.tags }}">
+                        {{ message }}
+                    </div>
+                {% endfor %}
+            </div>
+        {% endif %}
     <nav class="navbar navbar-light">
         <div class="container">
             <a class="navbar-brand" href="#">Survey: Providing Data to the Data Space</a>
@@ -44,7 +55,7 @@
     </nav>
 
     <!-- Main Content -->
-    <div class="container mt-4">
+
         <p> Please answer the following questions.</p>
 
         <form id="survey-form" method="post">
@@ -174,11 +185,19 @@
             event.preventDefault();
             const modal = new bootstrap.Modal(document.getElementById('thankYouModal'));
             modal.show();
+    
+            // Redirect after a short delay (3 seconds)
             setTimeout(() => {
-                this.reset();
-            }, 3000);
+                window.location.href = "{% url 'provide:provide_offer' %}";
+            }, 3000); // Redirect after 3 seconds (adjust as needed)
+        });
+    
+        // Add event listener to close button to handle redirect immediately
+        document.querySelector('#thankYouModal .btn-close').addEventListener('click', function() {
+            window.location.href = "{% url 'provide:provide_offer' %}";
         });
     </script>
+    
 
 </body>
 </html>
