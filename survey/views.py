@@ -10,8 +10,7 @@ def survey_view(request):
         form = SurveyForm(request.POST)
         if form.is_valid():
             # Save the survey response
-            response = form.save(commit=False)
-            response.user = request.user.username if request.user.is_authenticated else 'Anonymous'
+            response = form.save(commit=True)
             response.save()
             
             messages.success(request, "Thank you for completing the survey!")
