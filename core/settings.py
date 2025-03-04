@@ -22,10 +22,11 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-    'provide',
     'survey',
     'corsheaders',
     'rest_framework',
+    #'provide',
+    'provide.apps.ProvideConfig' # keeping only the full path
 ]
 
 MIDDLEWARE = [
@@ -114,4 +115,7 @@ DOMAIN_URL = config('DOMAIN_URL', '')
 
 
 ENFORCE_CONNECTOR_SSL = config('REQUESTS_VERIFY_SSL', cast=bool)
+
+API_URL = config('API_URL', '')
+
 
