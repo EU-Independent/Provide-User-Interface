@@ -1,24 +1,43 @@
-from django.shortcuts import render, redirect
+from django.shortcuts import render  # Add this import
+from django.http import JsonResponse
+from django.views.decorators.csrf import csrf_exempt
 from django.contrib import messages
-from .forms import SurveyForm
-from .models import SurveyResponse
+from .models import SurveyResponse, Question, Answer
+import json
 
-
-
+@csrf_exempt  # Add CSRF protection if needed in the AJAX headers
 def survey_view(request):
-    if request.method == 'POST':
-        form = SurveyForm(request.POST)
-        if form.is_valid():
-            # Save the survey response
-            response = form.save(commit=True)
-            response.save()
+    if request.method == "POST":
+        try:
+            data = json.loads(request.body)
             
-            messages.success(request, "Thank you for completing the survey!")
-            return redirect('survey')
-        else:
-            messages.error(request, "Please correct the errors below.")
+            # Create a new SurveyResponse object
+            survey_response = SurveyResponse.objects.create(
+                clarity=data.get('clarity'),
+                ease_run=data.get('ease_run'),
+                ease_provide=data.get('ease_provide'),
+                issues=data.get('issues'),
+                suggestions=data.get('suggestions')
+            )
+
+            # You can create answers for each question in the SurveyResponse if needed
+            questions = Question.objects.all()
+            for question in questions:
+                answer_text = data.get(question.question_text)  # Assuming the answer keys match the question text
+                if answer_text:
+                    Answer.objects.create(
+                        survey_response=survey_response,
+                        question=question,
+                        answer_text=answer_text
+                    )
+
+            messages.success(request, "Thank you for your feedback!")
+            
+            # Return JSON response to indicate success
+            return JsonResponse({"status": "success", "message": "Thank you for your feedback!"})
+
+        except Exception as e:
+            return JsonResponse({"status": "error", "message": str(e)})
+
     else:
-        form = SurveyForm()
-
-    return render(request, 'survey/survey.html', {'form': form})
-
+        return render(request, 'survey/survey.html')  # Render the survey template if GET request

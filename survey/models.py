@@ -17,21 +17,20 @@ class Question(models.Model):
     ]
 
     question_text = models.CharField(max_length=255)  # The actual question text
-    question_type = models.CharField(max_length=50, choices=[
-        ('clarity', 'Clarity'),
-        ('ease', 'Ease of Use'),
-        ('open-ended', 'Open-ended')
-    ])  # Type of question (e.g., multiple-choice, text input)
+    question_type = models.CharField(max_length=50, choices=[('clarity', 'Clarity'), ('ease', 'Ease of Use'), ('open-ended', 'Open-ended')])  # Type of question (e.g., multiple-choice, text input)
 
     def __str__(self):
         return self.question_text
 
 
 class SurveyResponse(models.Model):
-    id = models.AutoField(primary_key=True)  # Auto-generated primary key
+    clarity = models.CharField(max_length=255)
+    ease_run = models.CharField(max_length=255)
+    ease_provide = models.CharField(max_length=255)
     issues = models.TextField(default="No issues encountered.")
     suggestions = models.TextField(default="No suggestions provided.")
-    
+    submitted_at = models.DateTimeField(auto_now_add=True)  # Timestamp for when the response was submitted
+
     def __str__(self):
         return f"Survey Response (ID: {self.id})"
 
