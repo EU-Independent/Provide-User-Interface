@@ -95,9 +95,10 @@ def provide_offer(request):
             result = runner(user_metadata)
             if result:
                 messages.success(request, "The offer was successfully provided to the data space.")
+                return redirect('survey')  
             else:
                 messages.error(request, "Something went wrong with providing the offer.")
-            return redirect('provide_offer')
+            return redirect('survey')
         else:
             messages.error(request, "Form is invalid. Please correct the errors and try again.")
     else:

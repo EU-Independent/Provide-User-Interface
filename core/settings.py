@@ -23,7 +23,9 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'provide',
+    'survey',
     'corsheaders',
+    'rest_framework',
 ]
 
 MIDDLEWARE = [
