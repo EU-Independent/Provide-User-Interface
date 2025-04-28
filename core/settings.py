@@ -116,6 +116,6 @@ DOMAIN_URL = config('DOMAIN_URL', '')
 
 ENFORCE_CONNECTOR_SSL = config('REQUESTS_VERIFY_SSL', cast=bool)
 
-API_URL = config('API_URL', '')
+BROKER_URL = config('BROKER_URL', '')
 
 
