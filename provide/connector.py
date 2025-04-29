@@ -227,12 +227,13 @@ def process_creation(create_function, metadata, name):
     result = create_function(metadata)
     print("Status:", result.get('status'))
 
+    # Initialize variables to avoid UnboundLocalError
+    url = None
+    item_id = None
+
     # Check if creation was successful
     if result.get('status') == 'success':
         data = result.get('data', {})
-        #print("Data:", data)
-        #print("Metadata:", list(metadata.values()))
-
         # Extract and print URL and ID
         url = data.get('_links', {}).get('self', {}).get('href')
         if url:
