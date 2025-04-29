@@ -49,6 +49,7 @@ def make_request(url, headers=None, body=None):
 
 def create_catalog(metadata):
     url = settings.CONNECTOR_URL.rstrip('/') + '/api/catalogs'
+    print("create_catalog--------", url)
     headers = {
         'Content-Type': 'application/json',
         'Authorization': 'Basic YWRtaW46cGFzc3dvcmQ='
@@ -60,6 +61,7 @@ def create_catalog(metadata):
         "title": title,
         "description": description 
     }
+    print("----------create_catalog--------", url)
     return make_request(url, headers=headers, body=data)
 
 def create_representation(metadata):
@@ -83,6 +85,7 @@ def create_representation(metadata):
 
 def create_offer(metadata):
     url = settings.CONNECTOR_URL.rstrip('/') + '/api/offers'
+    print("create_offer metadata", metadata)
     headers = {
         'Content-Type': 'application/json',
         'Authorization': 'Basic YWRtaW46cGFzc3dvcmQ='
