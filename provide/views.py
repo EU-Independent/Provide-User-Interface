@@ -95,10 +95,10 @@ def provide_offer(request):
             result = runner(user_metadata)
             if result:
                 messages.success(request, "The offer was successfully provided to the data space.")
-                return redirect('survey')  
+                #return redirect('survey')  
             else:
                 messages.error(request, "Something went wrong with providing the offer.")
-            return redirect('survey')
+            #return redirect('survey')
         else:
             messages.error(request, "Form is invalid. Please correct the errors and try again.")
     else:
@@ -170,10 +170,8 @@ def handle_file_upload(request):
             file=uploaded_file,
             file_name=uploaded_file.name
         )
-
         file_url = f"{settings.DOMAIN_URL}{settings.MEDIA_URL}{file_instance.file.name}"
         return JsonResponse({"message": "File uploaded successfully", "file_url": file_url})
-
     return JsonResponse({"error": "No file provided"}, status=400)
 
 
