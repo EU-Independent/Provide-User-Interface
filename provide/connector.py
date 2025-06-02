@@ -95,6 +95,7 @@ def create_offer(metadata):
     keywords = metadata.get("keywords")
     keywords_list = keywords.split(',')
     license = metadata.get("license")
+    publisher = metadata.get("publisher")
     
     print("license create_offer", license)
     
@@ -104,7 +105,8 @@ def create_offer(metadata):
         "description": description,
         "keywords": keywords_list,
         "paymentMethod": paymentMethod,  # TODO: paymentMethod 'free' or 'undefined'
-        "license": license
+        "license": license,
+        "publisher": publisher
     }
     return make_request(url, headers=headers, body=data)
 
