@@ -83,6 +83,7 @@ def provide_offer(request):
 
     if request.method == 'POST':
         form = UploadMetadataForm(request.POST, license_choices=license_choices)
+        print(form.errors)
         if form.is_valid():
             data = form.cleaned_data
             selected_license_name = data.get('offer_license')

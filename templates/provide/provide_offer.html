@@ -108,23 +108,26 @@
                     <h4>Offer</h4>
                     <div class="form-group">
                         <label for="offer_title" class="form-label">Title </label>
-                        <input type="text" id="offer_title" name="offer_title" class="form-control" required>
+                        <input type="text" id="offer_title" name="offer_title" class="form-control" required placeholder="My Offer Title">
                     </div>
                     <div class="form-group">
                         <label for="offer_description" class="form-label">Description</label>
-                        <input type="text" id="offer_description" name="offer_description" class="form-control" required>
+                        <input type="text" id="offer_description" name="offer_description" class="form-control" required placeholder="My Offer Description">
                     </div>
                     <div class="form-group">
                         <label for="keywords" class="form-label">Keywords (comma-separated)</label>
-                        <input type="text" id="keywords" name="keywords" class="form-control" required>
+                        <input type="text" id="keywords" name="keywords" class="form-control" required placeholder="JSON, Weather, Helsinki">
                     </div>
                     <div class="form-group">
                         <label for="offer_publisher" class="form-label">Publisher</label>
-                        <input type="text" id="offer_publisher" name="offer_publisher" class="form-control" required>
+                        <input type="text" id="offer_publisher" name="offer_publisher" class="form-control" required placeholder="https://vtt.fi/publisher">
                     </div>
                     <div class="form-group">
                         <label for="offer_language" class="form-label">Language</label>
-                        <input type="text" id="offer_language" name="offer_language" class="form-control" required>
+                        <select id="offer_language" name="offer_language" class="form-control" required>
+                            <option value="">Select language</option>
+                            <option value="EN">EN</option>
+                        </select>
                     </div>
                     <div class="form-group">
                         <label for="offer_license" class="form-label">License</label>
@@ -161,16 +164,34 @@
                         <input type="datetime-local" id="end" name="end" class="form-control" required>
                     </div>
                     <div class="form-group">
-                        <label for="value" class="form-label">Access Policy</label>
-                        <textarea id="value" name="value" class="form-control" rows="10" required>{{ fixed_policy_rule }}</textarea>
+                        <label for="access_policy" class="form-label">Access Policy</label>
+                        <select id="access_policy" name="access_policy" class="form-control" required>
+                            <option value="">Select access policy</option>
+                            <option value="between_dates">Provide access between dates</option>
+                        </select>
+                        <input type="hidden" id="policy_value" name="value">
                     </div>
-
                     <hr>
                     <button type="submit" class="btn btn-primary mt-3">Provide the Offering</button>
                 </form>
             </div>
         </div>
     </div>
+
+    <script>
+    document.addEventListener("DOMContentLoaded", function () {
+        const accessPolicySelect = document.getElementById("access_policy");
+        const policyValueInput = document.getElementById("policy_value");
+
+        accessPolicySelect.addEventListener("change", function () {
+            if (accessPolicySelect.value === "between_dates") {
+                policyValueInput.value = "{{ fixed_policy_rule|escapejs }}";
+            } else {
+                policyValueInput.value = "";
+            }
+        });
+    });
+    </script>
 
     <!-- Copy URL Script -->
     <script>
