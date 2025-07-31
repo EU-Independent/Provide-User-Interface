@@ -119,4 +119,8 @@ ENFORCE_CONNECTOR_SSL = config('REQUESTS_VERIFY_SSL', cast=bool)
 
 BROKER_URL = config('BROKER_URL', '')
 
+# For the file upload
+USE_X_FORWARDED_HOST = True
+SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
+
 

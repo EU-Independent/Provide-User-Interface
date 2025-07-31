@@ -1,3 +1,5 @@
+# views.py
+
 from django import forms
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib import messages
@@ -82,7 +84,7 @@ def provide_offer(request):
     }
 
     if request.method == 'POST':
-        form = UploadMetadataForm(request.POST, license_choices=license_choices)
+        form = UploadMetadataForm(request.POST, license_choices=license_choices, request=request)
         print(form.errors)
         if form.is_valid():
             data = form.cleaned_data
@@ -96,14 +98,12 @@ def provide_offer(request):
             result = runner(user_metadata)
             if result:
                 messages.success(request, "The offer was successfully provided to the data space.")
-                #return redirect('survey')  
             else:
                 messages.error(request, "Something went wrong with providing the offer.")
-            #return redirect('survey')
         else:
             messages.error(request, "Form is invalid. Please correct the errors and try again.")
     else:
-        form = UploadMetadataForm(request.POST or None, license_choices=license_choices)
+        form = UploadMetadataForm(request.POST or None, license_choices=license_choices, request=request)
 
     return render(request, 'provide/provide_offer.html', {
         'form': form,
@@ -151,7 +151,6 @@ def upload_view(request, file_id=None):
         return handle_file_upload(request)
     elif request.method == "GET" and file_id:
         return handle_file_download(file_id)
-
     return JsonResponse({"error": "Invalid request"}, status=400)
 
 
@@ -162,17 +161,16 @@ def handle_file_upload(request):
         if uploaded_file.content_type not in ALLOWED_FILE_TYPES:
             return JsonResponse({"error": "Invalid file type. Only JSON files are allowed."}, status=400)
 
-        # Create upload directory if not exists
         if not os.path.exists(UPLOAD_DIR):
             os.makedirs(UPLOAD_DIR)
 
-        # Save file instance
         file_instance = UploadedFile.objects.create(
             file=uploaded_file,
             file_name=uploaded_file.name
         )
-        file_url = f"{settings.DOMAIN_URL}{settings.MEDIA_URL}{file_instance.file.name}"
-        return JsonResponse({"message": "File uploaded successfully", "file_url": file_url})
+        url = file_instance.file.url
+        absolute_url = request.build_absolute_uri(url)
+        return JsonResponse({"message": "File uploaded successfully", "file_url": absolute_url})
     return JsonResponse({"error": "No file provided"}, status=400)
 
 
