@@ -153,6 +153,33 @@
                         </div>
                     </div>
                     
+                        <!-- Authentication for Access URL -->
+                        <div class="form-group mt-3">
+                            <label for="auth_type" class="form-label">Authentication</label>
+                            <select id="auth_type" name="auth_type" class="form-control">
+                                <option value="none">None</option>
+                                <option value="basic">Basic (username/password)</option>
+                                <option value="bearer">Bearer (token)</option>
+                            </select>
+                        </div>
+                        <div class="form-group" id="basicAuthFields" style="display:none;">
+                            <label class="form-label">Basic Authentication</label>
+                            <input type="text" class="form-control mb-2" id="auth_username" name="auth_username" placeholder="Username">
+                            <input type="password" class="form-control" id="auth_password" name="auth_password" placeholder="Password">
+                        </div>
+                        <div class="form-group" id="bearerAuthField" style="display:none;">
+                            <label class="form-label">Bearer Token</label>
+                            <input type="password" class="form-control" id="auth_token" name="auth_token" placeholder="Token">
+                        </div>
+                        <div class="form-group mt-2">
+                            <button type="button" id="testAccessBtn" class="btn btn-secondary">Test Access</button>
+                            <div id="testAccessResult" class="ms-3" style="display:inline-block; min-width:300px;"></div>
+                        </div>
+                        <div id="testAccessDetailsWrapper" class="mt-2" style="display:none;">
+                            <a href="#" id="testAccessToggleDetails" class="small">Show details</a>
+                            <pre id="testAccessDetails" class="mt-2 small text-muted" style="display:none; white-space:pre-wrap; background:#f8f9fa; padding:8px; border-radius:6px;">{}</pre>
+                        </div>
+                    
                     <hr>
                     <h4>Data Access Rules</h4>
                     <div class="form-group">
@@ -200,6 +227,96 @@
             urlInput.select();
             document.execCommand('copy');
             alert('URL copied to clipboard!');
+        });
+    </script>
+
+    <script>
+        // Toggle auth fields
+        document.addEventListener('DOMContentLoaded', function () {
+            const authType = document.getElementById('auth_type');
+            const basicFields = document.getElementById('basicAuthFields');
+            const bearerField = document.getElementById('bearerAuthField');
+            const testBtn = document.getElementById('testAccessBtn');
+            const resultSpan = document.getElementById('testAccessResult');
+
+            function updateAuthUI() {
+                const v = authType.value;
+                basicFields.style.display = v === 'basic' ? 'block' : 'none';
+                bearerField.style.display = v === 'bearer' ? 'block' : 'none';
+            }
+
+            authType.addEventListener('change', updateAuthUI);
+            updateAuthUI();
+
+            function getCookie(name) {
+                const value = `; ${document.cookie}`;
+                const parts = value.split(`; ${name}=`);
+                if (parts.length === 2) return parts.pop().split(';').shift();
+            }
+
+            testBtn.addEventListener('click', function () {
+                const resultDiv = document.getElementById('testAccessResult');
+                const detailsWrapper = document.getElementById('testAccessDetailsWrapper');
+                const detailsPre = document.getElementById('testAccessDetails');
+                const toggleLink = document.getElementById('testAccessToggleDetails');
+                resultDiv.innerHTML = '<div class="d-inline-flex align-items-center text-muted"><span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span> Testing...</div>';
+                detailsWrapper.style.display = 'none';
+                detailsPre.style.display = 'none';
+                const form = document.getElementById('metadata-form');
+                const formData = new FormData(form);
+                fetch('{% url "provide:test_access" %}', {
+                    method: 'POST',
+                    body: formData,
+                    credentials: 'same-origin',
+                    headers: {
+                        'X-CSRFToken': getCookie('csrftoken') || ''
+                    }
+                }).then(async r => {
+                    let json = null; let text = null;
+                    try { json = await r.clone().json(); } catch(e){ json = null; }
+                    try { text = await r.clone().text(); } catch(e){ text = null; }
+                    const status = r.status;
+                    // normalize message and reason
+                    const code = (json && (json.status_code || json.code)) || status || '—';
+                    const reason = (json && (json.reason || json.message || json.error)) || r.statusText || '';
+                    const detailsText = JSON.stringify(json, null, 2) || text || '';
+                    if (r.ok && json && json.status === 'success') {
+                        // success alert with badge and reason
+                        resultDiv.innerHTML = `
+                            <div class="alert alert-success d-flex align-items-start p-2 mb-0" role="alert">
+                                <span class="badge rounded-pill bg-success me-3" style="min-width:48px;text-align:center;font-weight:600;">${code}</span>
+                                <div>
+                                    <h6 class="mb-1"><i class="fas fa-check-circle text-success me-1"></i>Accessible <small class="text-muted">${reason}</small></h6>
+                                    <div class="small text-muted">The URL responded with status ${code}.</div>
+                                </div>
+                            </div>
+                        `;
+                        detailsPre.textContent = detailsText;
+                        detailsWrapper.style.display = detailsPre.textContent ? 'block' : 'none';
+                    } else {
+                        // failure alert with badge and reason
+                        resultDiv.innerHTML = `
+                            <div class="alert alert-danger d-flex align-items-start p-2 mb-0" role="alert">
+                                <span class="badge rounded-pill bg-danger me-3" style="min-width:48px;text-align:center;font-weight:600;">${code}</span>
+                                <div>
+                                    <h6 class="mb-1"><i class="fas fa-times-circle text-danger me-1"></i>Not accessible <small class="text-muted">${reason}</small></h6>
+                                    <div class="small text-muted">${reason || 'The request failed. See details for more.'}</div>
+                                </div>
+                            </div>
+                        `;
+                        detailsPre.textContent = detailsText;
+                        detailsWrapper.style.display = detailsPre.textContent ? 'block' : 'none';
+                    }
+                    // toggle details link
+                    toggleLink.onclick = function (ev) {
+                        ev.preventDefault();
+                        if (detailsPre.style.display === 'none') { detailsPre.style.display = 'block'; toggleLink.textContent = 'Hide details'; }
+                        else { detailsPre.style.display = 'none'; toggleLink.textContent = 'Show details'; }
+                    };
+                }).catch(err => {
+                    resultDiv.innerHTML = `<div class="alert alert-warning p-2 mb-0" role="alert"><span class="badge bg-warning text-dark me-2">!</span><strong>Error</strong> — ${err.message}</div>`;
+                });
+            });
         });
     </script>
 

@@ -9,28 +9,55 @@ connector_url = settings.CONNECTOR_URL
 
 
 def convert_date_format(date_str):
-
     if isinstance(date_str, datetime):
         date_object = date_str
     else:
         try:
-            
-            date_object = datetime.strptime(date_str, "%Y-%m-%dT%H:%M")
-        except ValueError as e:
-            
-            print(f"Error: Invalid date format - {e}")
-            raise ValueError("Invalid date format")
-    
-    
-    date_object = date_object.replace(tzinfo=timezone.utc)
-    
+            # Try full ISO 8601 parsing (Python 3.7+)
+            date_object = datetime.fromisoformat(date_str.replace('Z', '+00:00'))
+        except Exception:
+            try:
+                # Fallback: try without seconds
+                date_object = datetime.strptime(date_str, "%Y-%m-%dT%H:%M")
+                date_object = date_object.replace(tzinfo=timezone.utc)
+            except Exception as e:
+                print(f"Error: Invalid date format - {e}")
+                raise ValueError("Invalid date format")
+    # Always output in connector format: YYYY-MM-DDTHH:MM:SS.sss+0000
     formatted_date_str = date_object.strftime("%Y-%m-%dT%H:%M:%S.%f")[:-3] + "+0000"
     return formatted_date_str
 
-def make_request(url, headers=None, body=None):
+def _build_auth_components(auth_meta):
+    """Return (auth_header_dict, requests_auth) tuple based on auth_meta."""
+    if not auth_meta:
+        return {}, None
+    auth_type = auth_meta.get('auth_type')
+    headers = {}
+    auth = None
+    if auth_type == 'basic':
+        username = auth_meta.get('auth_username')
+        password = auth_meta.get('auth_password')
+        from requests.auth import HTTPBasicAuth
+        auth = HTTPBasicAuth(username, password)
+    elif auth_type == 'bearer':
+        token = auth_meta.get('auth_token')
+        headers['Authorization'] = f'Bearer {token}'
+    return headers, auth
+
+
+def make_request(url, headers=None, body=None, method='post', auth_meta=None):
     try:
-        response = requests.post(url, headers=headers, json=body, verify=settings.ENFORCE_CONNECTOR_SSL)
-        response_json = response.json()
+        auth_headers, auth_obj = _build_auth_components(auth_meta)
+        final_headers = dict(headers or {})
+        final_headers.update(auth_headers)
+        if method.lower() == 'get':
+            response = requests.get(url, headers=final_headers, params=body, auth=auth_obj, verify=settings.ENFORCE_CONNECTOR_SSL)
+        else:
+            response = requests.post(url, headers=final_headers, json=body, auth=auth_obj, verify=settings.ENFORCE_CONNECTOR_SSL)
+        try:
+            response_json = response.json()
+        except ValueError:
+            response_json = None
         if response.status_code in [200, 201]:
             return {
                 'status': 'success',
@@ -39,13 +66,36 @@ def make_request(url, headers=None, body=None):
         else:
             return {
                 'status': 'error',
-                'data': response_json
+                'status_code': response.status_code,
+                'reason': response.reason,
+                'data': response_json,
+                'text': response.text
             }
     except requests.RequestException as e:
         return {
             'status': 'error',
             'message': str(e)
         }
+
+
+def test_access_url(access_url, auth_meta=None, timeout=10, method='get'):
+    """Perform a lightweight request to the access_url using the provided auth metadata.
+    Returns a dict with status and minimal response info.
+    """
+    try:
+        headers, auth = _build_auth_components(auth_meta)
+        # perform a GET request by default
+        resp = requests.request(method.upper(), access_url, headers=headers, auth=auth, timeout=timeout, verify=settings.ENFORCE_CONNECTOR_SSL)
+        try:
+            data = resp.json()
+        except ValueError:
+            data = None
+        if resp.status_code >= 200 and resp.status_code < 300:
+            return {'status': 'success', 'status_code': resp.status_code, 'reason': resp.reason, 'data': data}
+        else:
+            return {'status': 'error', 'status_code': resp.status_code, 'reason': resp.reason, 'data': data, 'text': resp.text}
+    except requests.RequestException as e:
+        return {'status': 'error', 'message': str(e)}
 
 def create_catalog(metadata):
     url = settings.CONNECTOR_URL.rstrip('/') + '/api/catalogs'
@@ -212,6 +262,13 @@ def create_artifact(metadata):
         "accessUrl": accessUrl,
         "automatedDownload": automatedDownload
     }
+    # forward any auth metadata if present so artifact can carry access credentials
+    if metadata.get('auth'):
+        data['auth'] = metadata.get('auth')
+    # legacy fields
+    for k in ('auth_type', 'auth_username', 'auth_password', 'auth_token'):
+        if metadata.get(k):
+            data[k] = metadata.get(k)
     return  make_request(url, headers=headers, body=data)
 
 def add_artifact_to_representation(created_representation_id, created_artifact_url):

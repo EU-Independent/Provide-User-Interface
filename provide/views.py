@@ -9,6 +9,7 @@ from django.views.decorators.csrf import csrf_exempt
 import os
 from .forms import UploadMetadataForm
 from .connector import runner
+from .connector import test_access_url
 from .models import License, UploadedFile
 
 # Constants
@@ -87,7 +88,13 @@ def provide_offer(request):
         form = UploadMetadataForm(request.POST, license_choices=license_choices, request=request)
         print(form.errors)
         if form.is_valid():
-            data = form.cleaned_data
+            data = form.cleaned_data.copy()
+            # Convert any datetime objects to ISO strings for session serialization
+            for k, v in data.items():
+                if hasattr(v, 'isoformat'):
+                    data[k] = v.isoformat()
+            # save the last successful metadata to session for publish fallback
+            request.session['provide_last_metadata'] = data
             selected_license_name = data.get('offer_license')
             selected_license = License.objects.filter(name=selected_license_name).first()
             license_url = selected_license.access_url if selected_license else ""
@@ -111,6 +118,34 @@ def provide_offer(request):
         'licenses': License.objects.all(),
         'data_space_connector_url': connector_url,
     })
+
+
+def test_access_endpoint(request):
+    # Accept either POST (form) or GET (query params) for convenience.
+    if request.method == 'GET':
+        access_url = request.GET.get('accessUrl') or request.GET.get('accessurl')
+        auth_meta = {
+            'auth_type': request.GET.get('auth_type'),
+            'auth_username': request.GET.get('auth_username'),
+            'auth_password': request.GET.get('auth_password'),
+            'auth_token': request.GET.get('auth_token')
+        }
+    elif request.method == 'POST':
+        access_url = request.POST.get('accessUrl') or request.POST.get('accessurl')
+        auth_meta = {
+            'auth_type': request.POST.get('auth_type'),
+            'auth_username': request.POST.get('auth_username'),
+            'auth_password': request.POST.get('auth_password'),
+            'auth_token': request.POST.get('auth_token')
+        }
+    else:
+        return JsonResponse({'error': 'GET or POST required'}, status=400)
+
+    # Validate presence of accessUrl
+    if not access_url:
+        return JsonResponse({'status': 'error', 'error': 'accessUrl is required'}, status=400)
+    result = test_access_url(access_url, auth_meta)
+    return JsonResponse(result)
 
 
 def get_fixed_policy_rule():
