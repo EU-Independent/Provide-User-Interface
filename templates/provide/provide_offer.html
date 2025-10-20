@@ -358,19 +358,37 @@
                 })
                 .then(response => response.json())
                 .then(data => {
-                    if (data.file_url) {
-                        // Populate the URL field with the uploaded file URL and make it non-editable
-                        accessUrlField.value = data.file_url;
+                    if (data.api_url) {
+                        // Set the accessUrl field to the API URL for extracted data
+                        accessUrlField.value = data.api_url;
                         accessUrlField.readOnly = true;
-                        removeFileBtn.style.display = "inline-block"; // Show the "Remove File" button
-                        fileUploadBtn.style.display = "none"; // Hide the upload button after file upload
+                        removeFileBtn.style.display = "inline-block";
+                        fileUploadBtn.style.display = "none";
+                        // Show a success message with both URLs
+                        let msg = `File uploaded successfully!<br>`;
+                        msg += `<strong>API URL:</strong> <a href='${data.api_url}' target='_blank'>${data.api_url}</a><br>`;
+                        if (data.file_url) {
+                            msg += `<strong>Raw File URL:</strong> <a href='${data.file_url}' target='_blank'>${data.file_url}</a>`;
+                        }
+                        showUploadMessage(msg, true);
                     } else {
-                        alert('Upload failed: ' + data.error);
+                        showUploadMessage('Upload failed: ' + (data.error || 'Unknown error'), false);
                     }
                 })
                 .catch(error => {
-                    alert('Error: ' + error.message);
+                    showUploadMessage('Error: ' + error.message, false);
                 });
+
+                // Helper to show upload result message
+                function showUploadMessage(msg, success) {
+                    let alertDiv = document.getElementById('uploadResultMsg');
+                    if (!alertDiv) {
+                        alertDiv = document.createElement('div');
+                        alertDiv.id = 'uploadResultMsg';
+                        accessUrlField.parentNode.appendChild(alertDiv);
+                    }
+                    alertDiv.innerHTML = `<div class='alert alert-${success ? 'success' : 'danger'} mt-2'>${msg}</div>`;
+                }
             }
 
             // Remove the uploaded file and reset the input for a new file upload

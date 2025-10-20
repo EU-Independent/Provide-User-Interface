@@ -11,6 +11,19 @@ from .forms import UploadMetadataForm
 from .connector import runner
 from .connector import test_access_url
 from .models import License, UploadedFile
+import json
+from django.views.decorators.http import require_GET
+from django.views.decorators.csrf import csrf_exempt
+from django.utils.decorators import method_decorator
+from django.views import View
+from django.urls import reverse
+from django.core.exceptions import ValidationError
+
+# Add a simple model for extracted data (to be added in models.py)
+try:
+    from .models import UploadedData
+except ImportError:
+    UploadedData = None  # Will need to add this model
 
 # Constants
 ALLOWED_FILE_TYPES = ["application/json"]
@@ -195,7 +208,7 @@ def upload_view(request, file_id=None):
 
 
 def handle_file_upload(request):
-    """Handle the file upload process."""
+    """Handle the file upload process, parse JSON, save data, and return API URL."""
     if request.FILES.get("file"):
         uploaded_file = request.FILES["file"]
         if uploaded_file.content_type not in ALLOWED_FILE_TYPES:
@@ -208,10 +221,41 @@ def handle_file_upload(request):
             file=uploaded_file,
             file_name=uploaded_file.name
         )
-        url = file_instance.file.url
-        absolute_url = request.build_absolute_uri(url)
-        return JsonResponse({"message": "File uploaded successfully", "file_url": absolute_url})
+        # Parse JSON and save to UploadedData
+        try:
+            with open(file_instance.file.path, 'r', encoding='utf-8') as f:
+                file_data = f.read()
+            json_data = json.loads(file_data)
+        except Exception as e:
+            return JsonResponse({"error": f"Failed to parse JSON: {str(e)}"}, status=400)
+
+        if UploadedData is None:
+            return JsonResponse({"error": "UploadedData model not found. Please add it to models.py."}, status=500)
+
+        data_instance = UploadedData.objects.create(
+            file=file_instance,
+            data=json_data
+        )
+        # Generate API URL for this data
+        api_url = request.build_absolute_uri(reverse('provide:uploaded_data_api', args=[data_instance.id]))
+        return JsonResponse({
+            "message": "File uploaded and data extracted successfully",
+            "file_url": request.build_absolute_uri(file_instance.file.url),
+            "api_url": api_url
+        })
     return JsonResponse({"error": "No file provided"}, status=400)
+# Add REST API endpoint for extracted data
+@require_GET
+@csrf_exempt
+def uploaded_data_api(request, data_id):
+    """Serve extracted JSON data by unique ID."""
+    if UploadedData is None:
+        return JsonResponse({"error": "UploadedData model not found."}, status=500)
+    try:
+        data_instance = UploadedData.objects.get(id=data_id)
+    except UploadedData.DoesNotExist:
+        return JsonResponse({"error": "Data not found."}, status=404)
+    return JsonResponse(data_instance.data, safe=False)
 
 
 def handle_file_download(file_id):
