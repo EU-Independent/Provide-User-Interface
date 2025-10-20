@@ -11,4 +11,6 @@ urlpatterns = [
     path('upload/<int:file_id>/', views.upload_view, name='file_download'),
     # API endpoint for extracted uploaded data
     path('api/uploaded-data/<int:data_id>/', views.uploaded_data_api, name='uploaded_data_api'),
+    # API endpoint for OfferAccess (returns all linked data)
+    path('api/offer-access/<uuid:offer_uuid>/', views.offer_access_api, name='offer_access_api'),
 ]

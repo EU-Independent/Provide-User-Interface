@@ -1,0 +1,97 @@
+[
+    {
+        "name": "CC0 1.0 Universal (Public Domain Dedication)",
+        "access_url": "https://creativecommons.org/publicdomain/zero/1.0/",
+        "status": "Accessible"
+    },
+    {
+        "name": "CC BY 4.0 (Attribution 4.0 International)",
+        "access_url": "https://creativecommons.org/licenses/by/4.0/",
+        "status": "Accessible"
+    },
+    {
+        "name": "CC BY-SA 4.0 (Attribution-ShareAlike 4.0 International)",
+        "access_url": "https://creativecommons.org/licenses/by-sa/4.0/",
+        "status": "Accessible"
+    },
+    {
+        "name": "CC BY-NC 4.0 (Attribution-NonCommercial 4.0 International)",
+        "access_url": "https://creativecommons.org/licenses/by-nc/4.0/",
+        "status": "Accessible"
+    },
+    {
+        "name": "CC BY-NC-SA 4.0 (Attribution-NonCommercial-ShareAlike 4.0 International)",
+        "access_url": "https://creativecommons.org/licenses/by-nc-sa/4.0/",
+        "status": "Accessible"
+    },
+    {
+        "name": "CC BY-ND 4.0 (Attribution-NoDerivatives 4.0 International)",
+        "access_url": "https://creativecommons.org/licenses/by-nd/4.0/",
+        "status": "Accessible"
+    },
+    {
+        "name": "CC BY-NC-ND 4.0 (Attribution-NonCommercial-NoDerivatives 4.0 International)",
+        "access_url": "https://creativecommons.org/licenses/by-nc-nd/4.0/",
+        "status": "Accessible"
+    },
+    {
+        "name": "ODC Public Domain Dedication and License (PDDL)",
+        "access_url": "https://opendatacommons.org/licenses/pddl/1-0/",
+        "status": "Accessible"
+    },
+    {
+        "name": "ODC Attribution License (ODC-By)",
+        "access_url": "https://opendatacommons.org/licenses/by/1-0/",
+        "status": "Accessible"
+    },
+    {
+        "name": "ODC Open Database License (ODbL)",
+        "access_url": "https://opendatacommons.org/licenses/odbl/1-0/",
+        "status": "Accessible"
+    },
+    {
+        "name": "GNU General Public License (GPL) v3.0",
+        "access_url": "https://www.gnu.org/licenses/gpl-3.0.en.html",
+        "status": "Error: HTTPSConnectionPool(host='www.gnu.org', port=443): Read timed out."
+    },
+    {
+        "name": "GNU Lesser General Public License (LGPL) v3.0",
+        "access_url": "https://www.gnu.org/licenses/lgpl-3.0.en.html",
+        "status": "Error: HTTPSConnectionPool(host='www.gnu.org', port=443): Max retries exceeded with url: /licenses/lgpl-3.0.en.html (Caused by ConnectTimeoutError(<urllib3.connection.HTTPSConnection object at 0x105ce5bd0>, 'Connection to www.gnu.org timed out. (connect timeout=10)'))"
+    },
+    {
+        "name": "MIT License",
+        "access_url": "https://opensource.org/licenses/MIT",
+        "status": "Accessible"
+    },
+    {
+        "name": "Apache License 2.0",
+        "access_url": "https://www.apache.org/licenses/LICENSE-2.0",
+        "status": "Accessible"
+    },
+    {
+        "name": "BSD 3-Clause License",
+        "access_url": "https://opensource.org/licenses/BSD-3-Clause",
+        "status": "Accessible"
+    },
+    {
+        "name": "BSD 2-Clause License",
+        "access_url": "https://opensource.org/licenses/BSD-2-Clause",
+        "status": "Accessible"
+    },
+    {
+        "name": "Eclipse Public License (EPL) v2.0",
+        "access_url": "https://www.eclipse.org/legal/epl-2.0/",
+        "status": "Accessible"
+    },
+    {
+        "name": "W3C Open Digital Rights Language (ODRL)",
+        "access_url": "https://www.w3.org/TR/odrl/",
+        "status": "Accessible"
+    },
+    {
+        "name": "European Union Public License (EUPL) v1.2",
+        "access_url": "https://joinup.ec.europa.eu/collection/eupl/eupl-text-eupl-12",
+        "status": "Accessible"
+    }
+]

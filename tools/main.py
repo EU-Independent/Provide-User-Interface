@@ -27,7 +27,7 @@ def check_urls(json_file):
 
 if __name__ == "__main__":
     # Replace with your actual JSON file path
-    json_file = "/Users/rfryan/Development/BFAlpha/Provide/tools/licenses.json"
+    json_file = "./licenses.json"
 
     # Check URLs
     results = check_urls(json_file)

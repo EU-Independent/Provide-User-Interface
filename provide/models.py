@@ -1,6 +1,17 @@
+
 from django.db import models
 import uuid
 
+# Model to represent an Offer Access URL linked to multiple uploaded data
+class OfferAccess(models.Model):
+    uuid = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    url = models.URLField(unique=True)
+    uploaded_data = models.ManyToManyField('UploadedData', related_name='offer_accesses')
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return str(self.uuid)
+    
 class UploadedFile(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     file = models.FileField(upload_to="uploads/")

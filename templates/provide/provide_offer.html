@@ -145,7 +145,7 @@
                             <div class="border p-3 w-100" style="border-radius: 8px; cursor: pointer; background-color: #f8f9fa; display: flex; align-items: center;">
                                 <input type="url" id="accessUrl" name="accessUrl" class="form-control" placeholder="Enter the file URL manually, or click the button to upload a file">
                                 <button type="button" class="btn btn-outline-danger ms-2" id="removeFileBtn" style="display:none;">Remove</button>
-                                <input type="file" id="fileInput" name="file" style="display:none;">
+                                <input type="file" id="fileInput" name="file" multiple style="display:none;">
                                 <button type="button" class="btn btn-outline-primary ms-2" id="fileUploadBtn">
                                     <i class="fas fa-upload"></i> Upload File
                                 </button>
@@ -338,18 +338,27 @@
 
             // Handle file selection from input
             fileInput.addEventListener("change", () => {
-                handleFileUpload(fileInput.files[0]);
+                handleFileUpload(fileInput.files);
             });
 
             // Trigger file input when the upload button is clicked
             fileUploadBtn.addEventListener("click", () => fileInput.click());
 
+            // Store the OfferAccess UUID for the current provider action
+            let offerAccessUuid = null;
+
             // Handle file upload logic
             function handleFileUpload(file) {
-                if (!file) return;
+                if (!file || file.length === 0) return;
 
                 const formData = new FormData();
-                formData.append("file", file);
+                for (let i = 0; i < file.length; i++) {
+                    formData.append("file", file[i]);
+                }
+                // If we already have an OfferAccess UUID, send it with the upload
+                if (offerAccessUuid) {
+                    formData.append("offer_access_uuid", offerAccessUuid);
+                }
 
                 fetch("/upload/", {
                     method: "POST",
@@ -358,36 +367,47 @@
                 })
                 .then(response => response.json())
                 .then(data => {
-                    if (data.api_url) {
-                        // Set the accessUrl field to the API URL for extracted data
-                        accessUrlField.value = data.api_url;
+                    if (data.offer_access_url) {
+                        // Set the accessUrl field to the Offer Access URL
+                        accessUrlField.value = data.offer_access_url;
                         accessUrlField.readOnly = true;
                         removeFileBtn.style.display = "inline-block";
-                        fileUploadBtn.style.display = "none";
-                        // Show a success message with both URLs
-                        let msg = `File uploaded successfully!<br>`;
-                        msg += `<strong>API URL:</strong> <a href='${data.api_url}' target='_blank'>${data.api_url}</a><br>`;
-                        if (data.file_url) {
-                            msg += `<strong>Raw File URL:</strong> <a href='${data.file_url}' target='_blank'>${data.file_url}</a>`;
+                        fileUploadBtn.style.display = "inline-block";
+                        fileInput.value = '';
+                        // Store the OfferAccess UUID for future uploads in this action
+                        if (data.offer_access_uuid) {
+                            offerAccessUuid = data.offer_access_uuid;
                         }
-                        showUploadMessage(msg, true);
+                        // Show a success message with the Offer Access URL and file URLs
+                        let msg = `Files uploaded successfully!<br>`;
+                        msg += `<strong>Offer Access URL:</strong> <a href='${data.offer_access_url}' target='_blank'>${data.offer_access_url}</a><br>`;
+                        if (data.file_urls) {
+                            data.file_urls.forEach((url, idx) => {
+                                msg += `<strong>Raw File URL ${idx+1}:</strong> <a href='${url}' target='_blank'>${url}</a><br>`;
+                            });
+                        }
+                        showUploadMessage(msg, true, true);
                     } else {
-                        showUploadMessage('Upload failed: ' + (data.error || 'Unknown error'), false);
+                        showUploadMessage('Upload failed: ' + (data.error || 'Unknown error'), false, false);
                     }
                 })
                 .catch(error => {
-                    showUploadMessage('Error: ' + error.message, false);
+                    showUploadMessage('Error: ' + error.message, false, false);
                 });
 
                 // Helper to show upload result message
-                function showUploadMessage(msg, success) {
+                function showUploadMessage(msg, success, append) {
                     let alertDiv = document.getElementById('uploadResultMsg');
                     if (!alertDiv) {
                         alertDiv = document.createElement('div');
                         alertDiv.id = 'uploadResultMsg';
                         accessUrlField.parentNode.appendChild(alertDiv);
                     }
-                    alertDiv.innerHTML = `<div class='alert alert-${success ? 'success' : 'danger'} mt-2'>${msg}</div>`;
+                    if (append && success) {
+                        alertDiv.innerHTML += `<div class='alert alert-success mt-2'>${msg}</div>`;
+                    } else {
+                        alertDiv.innerHTML = `<div class='alert alert-${success ? 'success' : 'danger'} mt-2'>${msg}</div>`;
+                    }
                 }
             }
 

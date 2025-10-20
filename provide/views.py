@@ -1,3 +1,4 @@
+import uuid
 # views.py
 
 from django import forms
@@ -209,41 +210,85 @@ def upload_view(request, file_id=None):
 
 def handle_file_upload(request):
     """Handle the file upload process, parse JSON, save data, and return API URL."""
-    if request.FILES.get("file"):
-        uploaded_file = request.FILES["file"]
-        if uploaded_file.content_type not in ALLOWED_FILE_TYPES:
-            return JsonResponse({"error": "Invalid file type. Only JSON files are allowed."}, status=400)
+    try:
+        files = request.FILES.getlist("file")
+        if not files:
+            print("No file provided in request.FILES")
+            return JsonResponse({"error": "No file provided"}, status=400)
+        file_urls = []
+        uploaded_data_instances = []
+        for uploaded_file in files:
+            print(f"Processing file: {uploaded_file.name}, content_type: {uploaded_file.content_type}")
+            if uploaded_file.content_type not in ALLOWED_FILE_TYPES:
+                print("Invalid file type: " + uploaded_file.content_type)
+                return JsonResponse({"error": "Invalid file type. Only JSON files are allowed."}, status=400)
 
-        if not os.path.exists(UPLOAD_DIR):
-            os.makedirs(UPLOAD_DIR)
+            if not os.path.exists(UPLOAD_DIR):
+                os.makedirs(UPLOAD_DIR)
 
-        file_instance = UploadedFile.objects.create(
-            file=uploaded_file,
-            file_name=uploaded_file.name
-        )
-        # Parse JSON and save to UploadedData
-        try:
-            with open(file_instance.file.path, 'r', encoding='utf-8') as f:
-                file_data = f.read()
-            json_data = json.loads(file_data)
-        except Exception as e:
-            return JsonResponse({"error": f"Failed to parse JSON: {str(e)}"}, status=400)
+            file_instance = UploadedFile.objects.create(
+                file=uploaded_file,
+                file_name=uploaded_file.name
+            )
+            file_urls.append(request.build_absolute_uri(file_instance.file.url))
+            # Parse JSON and save to UploadedData
+            try:
+                with open(file_instance.file.path, 'r', encoding='utf-8') as f:
+                    file_data = f.read()
+                json_data = json.loads(file_data)
+            except Exception as e:
+                print(f"Failed to parse JSON: {e}")
+                return JsonResponse({"error": f"Failed to parse JSON: {str(e)}"}, status=400)
 
-        if UploadedData is None:
-            return JsonResponse({"error": "UploadedData model not found. Please add it to models.py."}, status=500)
+            if UploadedData is None:
+                print("UploadedData model not found.")
+                return JsonResponse({"error": "UploadedData model not found. Please add it to models.py."}, status=500)
 
-        data_instance = UploadedData.objects.create(
-            file=file_instance,
-            data=json_data
-        )
-        # Generate API URL for this data
-        api_url = request.build_absolute_uri(reverse('provide:uploaded_data_api', args=[data_instance.id]))
+            data_instance = UploadedData.objects.create(
+                file=file_instance,
+                data=json_data
+            )
+            uploaded_data_instances.append(data_instance)
+        # Check for existing OfferAccess UUID in POST data
+        from .models import OfferAccess
+        offer_access_uuid = request.POST.get('offer_access_uuid')
+        offer_access = None
+        if offer_access_uuid:
+            try:
+                offer_access = OfferAccess.objects.get(uuid=offer_access_uuid)
+                print(f"Reusing existing OfferAccess: {offer_access.uuid}")
+            except OfferAccess.DoesNotExist:
+                print(f"OfferAccess UUID {offer_access_uuid} not found, creating new OfferAccess.")
+        if not offer_access:
+            offer_access = OfferAccess.objects.create()
+            offer_url = request.build_absolute_uri(reverse('provide:offer_access_api', args=[offer_access.uuid]))
+            offer_access.url = offer_url
+            offer_access.save()
+        else:
+            offer_url = offer_access.url
+        offer_access.uploaded_data.add(*uploaded_data_instances)
+        print(f"OfferAccess used: {offer_access.uuid}, url: {offer_url}")
         return JsonResponse({
-            "message": "File uploaded and data extracted successfully",
-            "file_url": request.build_absolute_uri(file_instance.file.url),
-            "api_url": api_url
+            "message": "Files uploaded and data extracted successfully",
+            "file_urls": file_urls,
+            "offer_access_url": offer_url,
+            "offer_access_uuid": str(offer_access.uuid)
         })
-    return JsonResponse({"error": "No file provided"}, status=400)
+    except Exception as e:
+        print(f"Unexpected error in handle_file_upload: {e}")
+        return JsonResponse({"error": f"Unexpected error: {str(e)}"}, status=500)
+# API endpoint to serve all data linked to an OfferAccess
+@require_GET
+@csrf_exempt
+def offer_access_api(request, offer_uuid):
+    from .models import OfferAccess
+    try:
+        offer_access = OfferAccess.objects.get(uuid=offer_uuid)
+    except OfferAccess.DoesNotExist:
+        return JsonResponse({"error": "OfferAccess not found."}, status=404)
+    offer_url = offer_access.url
+    all_data = [ud.data for ud in offer_access.uploaded_data.all()]
+    return JsonResponse({"offer_access_url": offer_url, "data": all_data}, safe=False)
 # Add REST API endpoint for extracted data
 @require_GET
 @csrf_exempt
