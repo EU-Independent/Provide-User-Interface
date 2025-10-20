@@ -26,6 +26,16 @@ def get_license_choices():
 
 def generate_user_metadata(data, license_url):
     """Generate user metadata for the offer."""
+    artifact = {
+        'title': data.get('artifact_title', 'Not set'),
+        'description': data.get('artifact_description', 'Not set'),
+        'accessUrl': data.get('accessUrl', 'Not set'),
+        'automatedDownload': data.get('automatedDownload', False),
+    }
+    # Forward auth fields if present
+    for k in ('auth_type', 'auth_token', 'auth_username', 'auth_password'):
+        if data.get(k):
+            artifact[k] = data.get(k)
     return {
         'catalog': {
             'title': data.get('catalog_title', 'Not set'),
@@ -57,12 +67,7 @@ def generate_user_metadata(data, license_url):
             'description': data.get('rule_description', 'Not set'),
             'value': data.get('value')
         },
-        'artifact': {
-            'title': data.get('artifact_title', 'Not set'),
-            'description': data.get('artifact_description', 'Not set'),
-            'accessUrl': data.get('accessUrl', 'Not set'),
-            'automatedDownload': data.get('automatedDownload', False),
-        }
+        'artifact': artifact
     }
 
 

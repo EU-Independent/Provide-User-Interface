@@ -262,6 +262,22 @@ def create_artifact(metadata):
         "accessUrl": accessUrl,
         "automatedDownload": automatedDownload
     }
+    # If Bearer token is present, add apiKey field
+    if metadata.get('auth_type') == 'bearer' and metadata.get('auth_token'):
+        data['apiKey'] = {
+            "key": "Authorization",
+            "value": f"Bearer {metadata.get('auth_token')}"
+        }
+    # If Basic auth is present, optionally add apiKey (not standard, but for completeness)
+    if metadata.get('auth_type') == 'basic' and metadata.get('auth_username') and metadata.get('auth_password'):
+        import base64
+        user = metadata.get('auth_username')
+        pw = metadata.get('auth_password')
+        token = base64.b64encode(f"{user}:{pw}".encode()).decode()
+        data['apiKey'] = {
+            "key": "Authorization",
+            "value": f"Basic {token}"
+        }
     # forward any auth metadata if present so artifact can carry access credentials
     if metadata.get('auth'):
         data['auth'] = metadata.get('auth')
@@ -269,6 +285,9 @@ def create_artifact(metadata):
     for k in ('auth_type', 'auth_username', 'auth_password', 'auth_token'):
         if metadata.get(k):
             data[k] = metadata.get(k)
+    print("****"*20)
+    print(data)
+    
     return  make_request(url, headers=headers, body=data)
 
 def add_artifact_to_representation(created_representation_id, created_artifact_url):
