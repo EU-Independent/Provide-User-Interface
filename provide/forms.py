@@ -9,7 +9,8 @@ class UploadMetadataForm(forms.Form):
     keywords = forms.CharField()
     offer_publisher = forms.CharField()
     offer_language = forms.CharField()
-    offer_license = forms.ChoiceField(choices=[])
+    # Make the license optional on the form level — the backend will handle a default/empty value.
+    offer_license = forms.ChoiceField(choices=[], required=False, initial='')
     accessUrl = forms.URLField()
     start = forms.DateTimeField()
     end = forms.DateTimeField()
@@ -29,7 +30,10 @@ class UploadMetadataForm(forms.Form):
         license_choices = kwargs.pop('license_choices', [])
         self.request = kwargs.pop('request', None)
         super().__init__(*args, **kwargs)
-        self.fields['offer_license'].choices = license_choices
+        # Ensure there's always a blank choice available so an empty selection is valid
+        # (useful when the field is hidden in the frontend and not supplied by the user).
+        blank = [('', '')]
+        self.fields['offer_license'].choices = blank + list(license_choices)
 
     def clean(self):
         cleaned = super().clean()
