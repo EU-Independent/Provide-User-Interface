@@ -262,15 +262,18 @@
                 resultDiv.innerHTML = '<div class="d-inline-flex align-items-center text-muted"><span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span> Testing...</div>';
                 detailsWrapper.style.display = 'none';
                 detailsPre.style.display = 'none';
-                const form = document.getElementById('metadata-form');
-                const formData = new FormData(form);
-                fetch('{% url "provide:test_access" %}', {
-                    method: 'POST',
-                    body: formData,
-                    credentials: 'same-origin',
-                    headers: {
-                        'X-CSRFToken': getCookie('csrftoken') || ''
-                    }
+                // Build query params and call the endpoint with GET to avoid servers that reject POST
+                const accessUrlVal = document.getElementById('accessUrl').value;
+                const params = new URLSearchParams();
+                params.append('accessUrl', accessUrlVal);
+                params.append('auth_type', document.getElementById('auth_type').value || '');
+                params.append('auth_username', document.getElementById('auth_username') ? document.getElementById('auth_username').value : '');
+                params.append('auth_password', document.getElementById('auth_password') ? document.getElementById('auth_password').value : '');
+                params.append('auth_token', document.getElementById('auth_token') ? document.getElementById('auth_token').value : '');
+
+                fetch('{% url "provide:test_access" %}?'+params.toString(), {
+                    method: 'GET',
+                    credentials: 'same-origin'
                 }).then(async r => {
                     let json = null; let text = null;
                     try { json = await r.clone().json(); } catch(e){ json = null; }
