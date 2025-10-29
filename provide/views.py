@@ -138,34 +138,78 @@ def provide_offer(request):
         'data_space_connector_url': connector_url,
     })
 
+# in provide/views.py
 
+import logging
+from django.http import JsonResponse
+from django.views.decorators.csrf import csrf_exempt
+
+logger = logging.getLogger(__name__)
+
+@csrf_exempt
 def test_access_endpoint(request):
-    # Accept either POST (form) or GET (query params) for convenience.
-    if request.method == 'GET':
-        access_url = request.GET.get('accessUrl') or request.GET.get('accessurl')
-        auth_meta = {
-            'auth_type': request.GET.get('auth_type'),
-            'auth_username': request.GET.get('auth_username'),
-            'auth_password': request.GET.get('auth_password'),
-            'auth_token': request.GET.get('auth_token')
-        }
-    elif request.method == 'POST':
-        access_url = request.POST.get('accessUrl') or request.POST.get('accessurl')
-        auth_meta = {
-            'auth_type': request.POST.get('auth_type'),
-            'auth_username': request.POST.get('auth_username'),
-            'auth_password': request.POST.get('auth_password'),
-            'auth_token': request.POST.get('auth_token')
-        }
-    else:
-        return JsonResponse({'error': 'GET or POST required'}, status=400)
+    """
+    Test the provided access URL with optional auth metadata.
 
-    # Validate presence of accessUrl
-    if not access_url:
-        return JsonResponse({'status': 'error', 'error': 'accessUrl is required'}, status=400)
-    result = test_access_url(access_url, auth_meta)
-    return JsonResponse(result)
+    Returns JSON with a consistent schema:
+      - success: {'status': 'success', ...}
+      - error:   {'status': 'error', 'error': 'message'}
+    """
+    access_url = None
+    auth_meta = {
+        'auth_type': None,
+        'auth_username': None,
+        'auth_password': None,
+        'auth_token': None,
+    }
 
+    try:
+        # Support GET (query params) and POST (form)
+        if request.method == 'GET':
+            access_url = request.GET.get('accessUrl') or request.GET.get('accessurl')
+            auth_meta.update({
+                'auth_type': request.GET.get('auth_type'),
+                'auth_username': request.GET.get('auth_username'),
+                'auth_password': request.GET.get('auth_password'),
+                'auth_token': request.GET.get('auth_token'),
+            })
+        elif request.method == 'POST':
+            access_url = request.POST.get('accessUrl') or request.POST.get('accessurl')
+            auth_meta.update({
+                'auth_type': request.POST.get('auth_type'),
+                'auth_username': request.POST.get('auth_username'),
+                'auth_password': request.POST.get('auth_password'),
+                'auth_token': request.POST.get('auth_token'),
+            })
+        else:
+            return JsonResponse({'status': 'error', 'error': 'GET or POST required'}, status=400)
+
+        if not access_url:
+            return JsonResponse({'status': 'error', 'error': 'accessUrl is required'}, status=400)
+
+        # Call the helper that actually hits the URL
+        result = test_access_url(access_url, auth_meta)
+
+        # Normalize result
+        if result is None:
+            logger.warning("test_access_url returned None for accessUrl=%s auth_meta=%s", access_url, auth_meta)
+            return JsonResponse({'status': 'error', 'error': 'no response from target URL'}, status=502)
+
+        if isinstance(result, dict):
+            # If helper already returns a dict shaped like {status: 'success' | 'error', ...}
+            # return it directly, but ensure we always have a status key
+            if 'status' not in result:
+                logger.warning("test_access_url returned dict without status for accessUrl=%s auth_meta=%s", access_url, auth_meta)
+                result['status'] = 'success'
+            return JsonResponse(result)
+        else:
+            logger.warning("test_access_url returned non-dict for accessUrl=%s auth_meta=%s", access_url, auth_meta)    
+            # If helper returns a scalar or non-dict, wrap it
+            return JsonResponse({'status': 'success', 'data': result})
+
+    except Exception as exc:
+        logger.exception("Error while testing access for %s", access_url)
+        return JsonResponse({'status': 'error', 'error': str(exc)}, status=500)
 
 def get_fixed_policy_rule():
     """Return the fixed policy rule for the offer."""

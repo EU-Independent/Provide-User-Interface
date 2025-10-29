@@ -1,5 +1,6 @@
 from django.http import JsonResponse
 import requests
+import urllib3
 from datetime import datetime, timezone
 import urllib.parse
 from django.conf import settings 
@@ -50,10 +51,16 @@ def make_request(url, headers=None, body=None, method='post', auth_meta=None):
         auth_headers, auth_obj = _build_auth_components(auth_meta)
         final_headers = dict(headers or {})
         final_headers.update(auth_headers)
+        # Determine SSL verification behavior from settings
+        verify_ssl = bool(getattr(settings, 'ENFORCE_CONNECTOR_SSL', True))
+        if not verify_ssl:
+            # Suppress noisy urllib3 insecure request warnings when verification is intentionally disabled
+            urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
+
         if method.lower() == 'get':
-            response = requests.get(url, headers=final_headers, params=body, auth=auth_obj, verify=settings.ENFORCE_CONNECTOR_SSL)
+            response = requests.get(url, headers=final_headers, params=body, auth=auth_obj, verify=verify_ssl)
         else:
-            response = requests.post(url, headers=final_headers, json=body, auth=auth_obj, verify=settings.ENFORCE_CONNECTOR_SSL)
+            response = requests.post(url, headers=final_headers, json=body, auth=auth_obj, verify=verify_ssl)
         try:
             response_json = response.json()
         except ValueError:
@@ -85,17 +92,24 @@ def test_access_url(access_url, auth_meta=None, timeout=10, method='get'):
     try:
         headers, auth = _build_auth_components(auth_meta)
         # perform a GET request by default
-        resp = requests.request(method.upper(), access_url, headers=headers, auth=auth, timeout=timeout, verify=settings.ENFORCE_CONNECTOR_SSL)
+        verify_ssl = bool(getattr(settings, 'ENFORCE_CONNECTOR_SSL', True))
+        if not verify_ssl:
+            urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
+        resp = requests.request(method.upper(), access_url, headers=headers, auth=auth, timeout=timeout, verify=verify_ssl)
         try:
             data = resp.json()
         except ValueError:
             data = None
+        # Include ssl_verified in response so caller knows whether verification was used
+        result = {'status_code': resp.status_code, 'reason': resp.reason, 'data': data, 'ssl_verified': verify_ssl}
         if resp.status_code >= 200 and resp.status_code < 300:
-            return {'status': 'success', 'status_code': resp.status_code, 'reason': resp.reason, 'data': data}
+            result.update({'status': 'success'})
+            return result
         else:
-            return {'status': 'error', 'status_code': resp.status_code, 'reason': resp.reason, 'data': data, 'text': resp.text}
+            result.update({'status': 'error', 'text': resp.text})
+            return result
     except requests.RequestException as e:
-        return {'status': 'error', 'message': str(e)}
+        return {'status': 'error', 'message': str(e), 'ssl_verified': getattr(settings, 'ENFORCE_CONNECTOR_SSL', True)}
 
 def create_catalog(metadata):
     url = settings.CONNECTOR_URL.rstrip('/') + '/api/catalogs'
