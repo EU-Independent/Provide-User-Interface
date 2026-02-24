@@ -4,9 +4,76 @@ import urllib3
 from datetime import datetime, timezone
 import urllib.parse
 from django.conf import settings 
+import logging
 
 
 connector_url = settings.CONNECTOR_URL
+logger = logging.getLogger(__name__)
+
+
+def _content_type_is_json(response):
+    content_type = (response.headers.get("Content-Type") or "").lower()
+    return "json" in content_type
+
+
+def _response_preview(response, limit=200):
+    raw = response.content[:limit] if response.content is not None else b""
+    if not raw:
+        return ""
+    try:
+        return raw.decode("utf-8", errors="replace")
+    except Exception:
+        return str(raw)
+
+
+def _safe_json_or_error(response, context, expect_status=200):
+    """
+    Parse JSON only for expected status and JSON content-type.
+    Returns (json_data, error_dict_or_none).
+    """
+    content_type = response.headers.get("Content-Type", "")
+    if isinstance(expect_status, (list, tuple, set)):
+        expected_statuses = set(expect_status)
+    else:
+        expected_statuses = {expect_status}
+
+    if response.status_code not in expected_statuses:
+        error = {
+            "status": "error",
+            "status_code": response.status_code,
+            "reason": response.reason,
+            "message": f"{context} returned unexpected status {response.status_code}; expected one of {sorted(expected_statuses)}",
+            "headers": dict(response.headers),
+            "body_preview": _response_preview(response),
+        }
+        logger.warning("%s", error)
+        return None, error
+
+    if not _content_type_is_json(response):
+        error = {
+            "status": "error",
+            "status_code": response.status_code,
+            "reason": response.reason,
+            "message": f"{context} returned non-JSON content-type '{content_type or 'missing'}'",
+            "headers": dict(response.headers),
+            "body_preview": _response_preview(response),
+        }
+        logger.warning("%s", error)
+        return None, error
+
+    try:
+        return response.json(), None
+    except ValueError as exc:
+        error = {
+            "status": "error",
+            "status_code": response.status_code,
+            "reason": response.reason,
+            "message": f"{context} returned invalid JSON: {exc}",
+            "headers": dict(response.headers),
+            "body_preview": _response_preview(response),
+        }
+        logger.warning("%s", error)
+        return None, error
 
 
 def convert_date_format(date_str):
@@ -61,10 +128,17 @@ def make_request(url, headers=None, body=None, method='post', auth_meta=None):
             response = requests.get(url, headers=final_headers, params=body, auth=auth_obj, verify=verify_ssl)
         else:
             response = requests.post(url, headers=final_headers, json=body, auth=auth_obj, verify=verify_ssl)
-        try:
-            response_json = response.json()
-        except ValueError:
-            response_json = None
+
+        expected_status = 200 if method.lower() == 'get' else (200, 201)
+        response_json, parse_error = _safe_json_or_error(
+            response,
+            context=f"{method.upper()} {url}",
+            expect_status=expected_status,
+        )
+
+        if parse_error:
+            return parse_error
+
         if response.status_code in [200, 201]:
             return {
                 'status': 'success',
@@ -96,18 +170,23 @@ def test_access_url(access_url, auth_meta=None, timeout=10, method='get'):
         if not verify_ssl:
             urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
         resp = requests.request(method.upper(), access_url, headers=headers, auth=auth, timeout=timeout, verify=verify_ssl)
-        try:
-            data = resp.json()
-        except ValueError:
-            data = None
+        data, parse_error = _safe_json_or_error(
+            resp,
+            context=f"{method.upper()} {access_url}",
+            expect_status=200,
+        )
+        if parse_error:
+            parse_error["ssl_verified"] = verify_ssl
+            return parse_error
+
         # Include ssl_verified in response so caller knows whether verification was used
-        result = {'status_code': resp.status_code, 'reason': resp.reason, 'data': data, 'ssl_verified': verify_ssl}
-        if resp.status_code >= 200 and resp.status_code < 300:
-            result.update({'status': 'success'})
-            return result
-        else:
-            result.update({'status': 'error', 'text': resp.text})
-            return result
+        return {
+            'status': 'success',
+            'status_code': resp.status_code,
+            'reason': resp.reason,
+            'data': data,
+            'ssl_verified': verify_ssl,
+        }
     except requests.RequestException as e:
         return {'status': 'error', 'message': str(e), 'ssl_verified': getattr(settings, 'ENFORCE_CONNECTOR_SSL', True)}
 
